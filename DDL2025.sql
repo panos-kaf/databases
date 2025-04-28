@@ -31,6 +31,7 @@ CREATE TABLE `artist` (
   `birthdate` date NOT NULL,
   `site` varchar(45) DEFAULT NULL,
   `instagram_profile` varchar(45) DEFAULT NULL,
+  `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -65,6 +66,7 @@ CREATE TABLE `band` (
   `name` varchar(45) NOT NULL,
   `instagram_profile` varchar(45) NOT NULL,
   `site` varchar(45) NOT NULL,
+  `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -115,6 +117,7 @@ CREATE TABLE `building` (
   `name` varchar(45) NOT NULL,
   `description` varchar(45) DEFAULT NULL,
   `capacity` int NOT NULL,
+  `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`building_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -165,6 +168,7 @@ CREATE TABLE `equipment` (
   `building_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `quantity` int NOT NULL,
+  `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`building_id`,`name`),
   CONSTRAINT `fk_building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`building_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -180,10 +184,14 @@ DROP TABLE IF EXISTS `event`;
 CREATE TABLE `event` (
   `id` int NOT NULL AUTO_INCREMENT,
   `building_id` int NOT NULL,
+  `image_url` VARCHAR(255) DEFAULT NULL,
+  `festival_id` int NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `fk_event_festival_id`(`festival_id`),
   KEY `fk_building_id_idx` (`building_id`),
   KEY `fk_building_event_id_idx` (`building_id`),
-  CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`building_id`)
+  CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`building_id`),
+  CONSTRAINT `fk_event_festival_id` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -215,6 +223,7 @@ CREATE TABLE `festival` (
   `ending_date` date NOT NULL,
   `duration` int GENERATED ALWAYS AS ((to_days(`ending_date`) - to_days(`starting_date`))) STORED,
   `location_id` int NOT NULL,
+  `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `location_id_idx` (`location_id`),
   CONSTRAINT `location_id` FOREIGN KEY (`location_id`) REFERENCES `location` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
