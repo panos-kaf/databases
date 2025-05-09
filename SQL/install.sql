@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `artist`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `artist` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   `stage_name` varchar(45) NOT NULL,
   `birthdate` date NOT NULL,
@@ -61,7 +61,7 @@ DROP TABLE IF EXISTS `band`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `band` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `formation_date` date NOT NULL,
   `name` varchar(45) NOT NULL,
   `instagram_profile` varchar(100) NOT NULL,
@@ -113,12 +113,12 @@ DROP TABLE IF EXISTS `building`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `building` (
-  `building_id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   `description` varchar(150) DEFAULT NULL,
   `capacity` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
-  PRIMARY KEY (`building_id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -130,9 +130,11 @@ DROP TABLE IF EXISTS `buyer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `buyer` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `visitor_id` int DEFAULT NULL,
-  `event_id` int NOT NULL,
+  `event_id` int DEFAULT NULL,
+  `ticket_type_id` int DEFAULT NULL,
+  `specific_ticket` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `event_visitor_id_UNIQUE` (`event_id`,`visitor_id`),
@@ -149,7 +151,7 @@ DROP TABLE IF EXISTS `continent`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `continent` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
@@ -164,12 +166,12 @@ DROP TABLE IF EXISTS `equipment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `equipment` (
-  `building_id` int NOT NULL AUTO_INCREMENT,
+  `building_id` int NOT NULL,
   `name` varchar(50) NOT NULL,
   `quantity` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`building_id`,`name`),
-  CONSTRAINT `fk_building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`building_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -181,15 +183,14 @@ DROP TABLE IF EXISTS `event`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `event` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `building_id` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
   `festival_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_event_festival_id`(`festival_id`),
   KEY `fk_building_id_idx` (`building_id`),
-  KEY `fk_building_event_id_idx` (`building_id`),
-  CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`building_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_event_festival_id` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -202,7 +203,7 @@ DROP TABLE IF EXISTS `experience`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `experience` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `description` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -216,7 +217,7 @@ DROP TABLE IF EXISTS `festival`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `festival` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `year` year NOT NULL,
   `starting_date` date NOT NULL,
   `ending_date` date NOT NULL,
@@ -237,7 +238,7 @@ DROP TABLE IF EXISTS `genre`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `genre` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -251,7 +252,7 @@ DROP TABLE IF EXISTS `location`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `location` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `address` varchar(45) NOT NULL,
   `city` varchar(45) NOT NULL,
   `latitude` decimal(9,6) DEFAULT NULL,
@@ -272,7 +273,7 @@ DROP TABLE IF EXISTS `performance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `performance` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `time` time DEFAULT NULL,
   `duration` int DEFAULT NULL,
   `break` int NOT NULL,
@@ -296,7 +297,7 @@ DROP TABLE IF EXISTS `performance_type`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `performance_type` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `type` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -310,7 +311,7 @@ DROP TABLE IF EXISTS `purchase_type`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `purchase_type` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `type` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -324,7 +325,7 @@ DROP TABLE IF EXISTS `resale_queue`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `resale_queue` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `ticket_id` int NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
@@ -341,7 +342,7 @@ DROP TABLE IF EXISTS `reseller`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `reseller` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `visitor_id` int NOT NULL,
   `sale_id` int NOT NULL,
   PRIMARY KEY (`id`),
@@ -361,7 +362,7 @@ DROP TABLE IF EXISTS `review`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `review` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `score` int NOT NULL,
   `criteria` varchar(45) NOT NULL,
   `visitor_id` int NOT NULL,
@@ -379,7 +380,7 @@ DROP TABLE IF EXISTS `role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `role` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `description` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -393,7 +394,7 @@ DROP TABLE IF EXISTS `staff`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `staff` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `first_name` varchar(45) NOT NULL,
   `last_name` varchar(45) NOT NULL,
   `birthdate` date NOT NULL,
@@ -415,7 +416,7 @@ DROP TABLE IF EXISTS `subgenre`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subgenre` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   `genre_id` int NOT NULL,
   PRIMARY KEY (`id`),
@@ -432,20 +433,23 @@ DROP TABLE IF EXISTS `ticket`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ticket` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `cost` int NOT NULL,
   `used` tinyint NOT NULL,
-  `purchase_type_id` int NOT NULL,
+  `purchase_type_id` int DEFAULT  NULL,
   `ticket_type_id` int NOT NULL,
-  `purchase_date` date NOT NULL,
-  `visitor_id` int NOT NULL,
+  `purchase_date` date DEFAULT NULL,
+  `visitor_id` int DEFAULT NULL,
+  `event_id` int NOT NULL,
+  `for_sale` tinyint DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `fk_purchase_type_id_idx` (`purchase_type_id`),
   KEY `fk_ticket_type_id_idx` (`ticket_type_id`),
   KEY `fk_ticket_visitor_id_idx` (`visitor_id`),
-  CONSTRAINT `fk_purchase_type_id` FOREIGN KEY (`purchase_type_id`) REFERENCES `purchase_type` (`id`),
-  CONSTRAINT `fk_ticket_type_id` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_type` (`id`),
-  CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+  CONSTRAINT `fk_purchase_type_id` FOREIGN KEY (`purchase_type_id`) REFERENCES `purchase_type` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_ticket_type_id` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_type` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_ticket_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -457,7 +461,7 @@ DROP TABLE IF EXISTS `ticket_type`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ticket_type` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `type` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -471,7 +475,7 @@ DROP TABLE IF EXISTS `visitor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `visitor` (
-  `id` int NOT NULL,
+  `id` int AUTO_INCREMENT,
   `name` varchar(45) NOT NULL,
   `email` varchar(45) NOT NULL,
   `birthdate` date DEFAULT NULL,
@@ -479,6 +483,41 @@ CREATE TABLE `visitor` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DELIMITER $$
+
+CREATE TRIGGER check_vip_capacity
+BEFORE INSERT ON ticket
+FOR EACH ROW
+BEGIN
+    DECLARE event_building_id INT;
+    DECLARE event_capacity INT;
+    DECLARE vip_count INT;
+    
+    -- Βρίσκουμε το κτίριο που θα γίνει το event
+    SELECT building_id INTO event_building_id
+    FROM event
+    WHERE id = NEW.event_id;
+
+    -- Βρίσκουμε τη χωρητικότητα του κτιρίου
+    SELECT capacity INTO event_capacity
+    FROM building
+    WHERE id = event_building_id;
+
+    -- Υπολογίζουμε πόσα VIP εισιτήρια υπάρχουν ήδη για το event
+    SELECT COUNT(*) INTO vip_count
+    FROM ticket
+    WHERE event_id = NEW.event_id AND ticket_type_id = (
+        SELECT id FROM ticket_type WHERE type = 'VIP'
+    );
+
+    -- Έλεγχος: Αν το VIP ξεπερνάει το 10% της χωρητικότητας
+    IF vip_count >= (event_capacity * 0.1) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot add more VIP tickets. Capacity limit exceeded.';
+    END IF;
+END $$
+
+DELIMITER ;
 
 
 /*!40101 SET character_set_client = @saved_cs_client */;
