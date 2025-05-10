@@ -2,7 +2,7 @@ import random
 import sys
 
 if len(sys.argv) != 3:
-    print(f"Usage: {sys.argv[0]} N M")
+    print(f"Usage: {sys.argv[0]} amount range")
     sys.exit(1)
 
 N = int(sys.argv[1])
