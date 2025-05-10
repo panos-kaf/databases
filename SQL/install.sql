@@ -284,12 +284,22 @@ CREATE TABLE `performance` (
   PRIMARY KEY (`id`),
   KEY `fk_performance_type_id_idx` (`performance_type_id`),
   KEY `fk_event_performance_id_idx` (`event_id`),
-  CONSTRAINT `chk_break_values` CHECK (`break` IN (5, 10, 15, 20, 25, 30)) ,
+  CONSTRAINT `chk_break_values` CHECK (`break` >= 5 and `break` <= 30 ) ,
   CONSTRAINT `chk_duration_limit` CHECK (`duration` <= 180),
   CONSTRAINT `fk_event_performance_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_performance_type_id` FOREIGN KEY (`performance_type_id`) REFERENCES `performance_type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `artist_performance`;
+CREATE TABLE `artist_performance` (
+	`artist_id` int NOT NULL,
+    `performance_id` int NOT NULL,
+	PRIMARY KEY (`artist_id`,`performance_id`),
+	KEY `fk_artist_id_idx` (`artist_id`),
+	CONSTRAINT `fk_artist_performance_id` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT `fk_performance_artist_id` FOREIGN KEY (`performance_id`) REFERENCES `performance` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Table structure for table `performance_type`
@@ -488,6 +498,14 @@ CREATE TABLE `visitor` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `insert_logs`;
+CREATE TABLE `insert_logs` (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message VARCHAR(255) NOT NULL,
+    timestamp DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 DELIMITER $$
 
 CREATE TRIGGER check_vip_capacity
@@ -539,8 +557,12 @@ BEGIN
 
     -- Σφάλμα αν υπάρχει ήδη ένα εισιτήριο
     IF ticket_count > 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Ο επισκέπτης έχει ήδη εισιτήριο για αυτό το event.';
+        INSERT INTO insert_logs (message, timestamp)
+        VALUES (
+            CONCAT('Visitor with ID ', NEW.visitor_id, ' already owned ticket for this event with ID ', NEW.event_id),
+            NOW()
+        );
+        SET NEW.id = NULL;
     END IF;
 END $$
 
@@ -548,34 +570,62 @@ DELIMITER ;
 
 DELIMITER $$
 
-CREATE TRIGGER check_single_ticket_per_event_update
-BEFORE UPDATE ON ticket
+CREATE TRIGGER check_consecutive_festival_years
+BEFORE INSERT ON artist_performance
 FOR EACH ROW
 BEGIN
-    DECLARE ticket_count INT;
-
-    -- Αν το event_id ή το visitor_id αλλάζουν, τότε ελέγχει για την ύπαρξη άλλου εισιτηρίου
-    IF (NEW.visitor_id != OLD.visitor_id OR NEW.event_id != OLD.event_id) THEN
-
-        -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το event
-        SELECT COUNT(*) INTO ticket_count
-        FROM ticket
-        WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id;
-
-        -- Σφάλμα αν υπάρχει ήδη ένα εισιτήριο
-        IF ticket_count > 0 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Ο επισκέπτης έχει ήδη εισιτήριο για αυτό το event.';
-        END IF;
-
+    DECLARE current_festival_year YEAR;
+    DECLARE prev_year1 YEAR;
+    DECLARE prev_year2 YEAR;
+    DECLARE prev_year3 YEAR;
+    DECLARE artist_prev_year1_count INT;
+    DECLARE artist_prev_year2_count INT;
+    DECLARE artist_prev_year3_count INT;
+    
+    -- Get the year of the festival for the current performance
+    SELECT f.year INTO current_festival_year
+    FROM performance p
+    JOIN event e ON p.event_id = e.id
+    JOIN festival f ON e.festival_id = f.id
+    WHERE p.id = NEW.performance_id;
+    
+    -- Calculate previous three years
+    SET prev_year1 = current_festival_year - 1;
+    SET prev_year2 = current_festival_year - 2;
+    SET prev_year3 = current_festival_year - 3;
+    
+    -- Check if artist performed in previous year
+    SELECT COUNT(*) INTO artist_prev_year1_count
+    FROM artist_performance ap
+    JOIN performance p ON ap.performance_id = p.id
+    JOIN event e ON p.event_id = e.id
+    JOIN festival f ON e.festival_id = f.id
+    WHERE ap.artist_id = NEW.artist_id AND f.year = prev_year1;
+    
+    -- Check if artist performed two years ago
+    SELECT COUNT(*) INTO artist_prev_year2_count
+    FROM artist_performance ap
+    JOIN performance p ON ap.performance_id = p.id
+    JOIN event e ON p.event_id = e.id
+    JOIN festival f ON e.festival_id = f.id
+    WHERE ap.artist_id = NEW.artist_id AND f.year = prev_year2;
+    
+    -- Check if artist performed three years ago
+    SELECT COUNT(*) INTO artist_prev_year3_count
+    FROM artist_performance ap
+    JOIN performance p ON ap.performance_id = p.id
+    JOIN event e ON p.event_id = e.id
+    JOIN festival f ON e.festival_id = f.id
+    WHERE ap.artist_id = NEW.artist_id AND f.year = prev_year3;
+    
+    -- If artist performed in all three previous years, prevent this performance (would be 4th consecutive)
+    IF artist_prev_year1_count > 0 AND artist_prev_year2_count > 0 AND artist_prev_year3_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Artist cannot perform for more than 3 consecutive years. They must skip this year.';
     END IF;
 END $$
 
 DELIMITER ;
-
-
-
-
 
 
 /*!40101 SET character_set_client = @saved_cs_client */;
