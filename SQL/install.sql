@@ -458,7 +458,7 @@ DROP TABLE IF EXISTS `ticket`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ticket` (
   `id` int AUTO_INCREMENT,
-  `cost` int NOT NULL,
+  `cost` float NOT NULL,
   `used` tinyint NOT NULL,
   `purchase_type_id` int DEFAULT  NULL,
   `ticket_type_id` int NOT NULL,
@@ -648,6 +648,75 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER check_no_consecutive_or_same_year_festivals
+BEFORE INSERT ON festival
+FOR EACH ROW
+BEGIN
+    DECLARE festival_count INT;
+    DECLARE same_year_count INT;
+
+    -- Έλεγχος αν υπάρχει ήδη festival την προηγούμενη ή την επόμενη χρονιά στην ίδια τοποθεσία
+    SELECT COUNT(*) INTO festival_count
+    FROM festival
+    WHERE location_id = NEW.location_id 
+      AND (year = NEW.year - 1 OR year = NEW.year + 1);
+
+    -- Έλεγχος αν υπάρχει ήδη festival την ίδια χρονιά σε οποιαδήποτε τοποθεσία
+    SELECT COUNT(*) INTO same_year_count
+    FROM festival
+    WHERE year = NEW.year;
+
+    -- Αν βρεθεί festival στην ίδια τοποθεσία την προηγούμενη ή την επόμενη χρονιά
+    IF festival_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.';
+    END IF;
+
+    -- Αν βρεθεί festival την ίδια χρονιά
+    IF same_year_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+-- Capacity check per ticket insertion
+CREATE TRIGGER check_building_capacity
+BEFORE INSERT ON ticket
+FOR EACH ROW
+BEGIN
+    DECLARE current_tickets INT;
+    DECLARE building_capacity INT;
+
+    -- Βρίσκουμε τη χωρητικότητα του building που αντιστοιχεί στο event
+    SELECT b.capacity INTO building_capacity
+    FROM event e
+    JOIN building b ON e.building_id = b.id
+    WHERE e.id = NEW.event_id;
+
+    -- Βρίσκουμε πόσα εισιτήρια έχουν ήδη εκδοθεί για το συγκεκριμένο event
+    SELECT COUNT(*) INTO current_tickets
+    FROM ticket
+    WHERE event_id = NEW.event_id;
+
+    -- Αν τα ήδη εκδοθέντα εισιτήρια + το καινούριο υπερβαίνουν τη χωρητικότητα
+    IF (current_tickets + 1) > building_capacity THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Δεν είναι δυνατή η δημιουργία του εισιτηρίου: Έχει ξεπεραστεί η χωρητικότητα του κτιρίου.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+
+
 
 
 /*!40101 SET character_set_client = @saved_cs_client */;
