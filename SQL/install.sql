@@ -416,7 +416,7 @@ CREATE TABLE `staff` (
   PRIMARY KEY (`id`),
   KEY `experience_id_idx` (`experience`),
   KEY `role_id_idx` (`role`),
-  CONSTRAINT `building_id` FOREIGN KEY (`building_id`) REFERENCES `buildings` (`id`),
+  CONSTRAINT `building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`),
   CONSTRAINT `experience_id` FOREIGN KEY (`experience`) REFERENCES `experience` (`id`),
   CONSTRAINT `role_id` FOREIGN KEY (`role`) REFERENCES `role` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
@@ -456,7 +456,7 @@ CREATE TABLE `ticket` (
   `visitor_id` int DEFAULT NULL,
   `event_id` int NOT NULL,
   `for_sale` tinyint DEFAULT 0,
-  `ean-13` int NOT NULL,
+  `ean-13` bigint NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_purchase_type_id_idx` (`purchase_type_id`),
   KEY `fk_ticket_type_id_idx` (`ticket_type_id`),
