@@ -36,6 +36,7 @@ CREATE TABLE `artist` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+
 --
 -- Table structure for table `artist_subgenre`
 --
@@ -187,11 +188,12 @@ CREATE TABLE `event` (
   `building_id` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
   `festival_id` int NOT NULL,
+  `day` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_event_festival_id`(`festival_id`),
   KEY `fk_building_id_idx` (`building_id`),
   CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_event_festival_id` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`id`)
+  CONSTRAINT `fk_event_festival_id` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -400,9 +402,11 @@ CREATE TABLE `staff` (
   `birthdate` date NOT NULL,
   `experience` int NOT NULL,
   `role` int NOT NULL,
+  `building_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `experience_id_idx` (`experience`),
   KEY `role_id_idx` (`role`),
+  CONSTRAINT `building_id` FOREIGN KEY (`building_id`) REFERENCES `buildings` (`id`),
   CONSTRAINT `experience_id` FOREIGN KEY (`experience`) REFERENCES `experience` (`id`),
   CONSTRAINT `role_id` FOREIGN KEY (`role`) REFERENCES `role` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -442,6 +446,7 @@ CREATE TABLE `ticket` (
   `visitor_id` int DEFAULT NULL,
   `event_id` int NOT NULL,
   `for_sale` tinyint DEFAULT 0,
+  `ean-13` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_purchase_type_id_idx` (`purchase_type_id`),
   KEY `fk_ticket_type_id_idx` (`ticket_type_id`),
@@ -449,7 +454,7 @@ CREATE TABLE `ticket` (
   CONSTRAINT `fk_purchase_type_id` FOREIGN KEY (`purchase_type_id`) REFERENCES `purchase_type` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_ticket_type_id` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_type` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `fk_ticket_event_id` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_ticket_event_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -518,6 +523,59 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER check_single_ticket_per_event
+BEFORE INSERT ON ticket
+FOR EACH ROW
+BEGIN
+    DECLARE ticket_count INT;
+
+    -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το event
+    SELECT COUNT(*) INTO ticket_count
+    FROM ticket
+    WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id;
+
+    -- Σφάλμα αν υπάρχει ήδη ένα εισιτήριο
+    IF ticket_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ο επισκέπτης έχει ήδη εισιτήριο για αυτό το event.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER check_single_ticket_per_event_update
+BEFORE UPDATE ON ticket
+FOR EACH ROW
+BEGIN
+    DECLARE ticket_count INT;
+
+    -- Αν το event_id ή το visitor_id αλλάζουν, τότε ελέγχει για την ύπαρξη άλλου εισιτηρίου
+    IF (NEW.visitor_id != OLD.visitor_id OR NEW.event_id != OLD.event_id) THEN
+
+        -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το event
+        SELECT COUNT(*) INTO ticket_count
+        FROM ticket
+        WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id;
+
+        -- Σφάλμα αν υπάρχει ήδη ένα εισιτήριο
+        IF ticket_count > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Ο επισκέπτης έχει ήδη εισιτήριο για αυτό το event.';
+        END IF;
+
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+
+
 
 
 /*!40101 SET character_set_client = @saved_cs_client */;
