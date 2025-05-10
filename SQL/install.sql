@@ -376,31 +376,22 @@ DROP TABLE IF EXISTS `review`;
 CREATE TABLE `review` (
   `id` int AUTO_INCREMENT,
   `score` int NOT NULL,
-  `criteria` int NOT NULL,
+  `criteria_id` int NOT NULL,
   `visitor_id` int NOT NULL,
   `performance_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_visitor_id_idx` (`visitor_id`),
   CONSTRAINT `fk_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`),
-  CONSTRAINT `fk_performance_id` FOREIGN KEY (`performance_id`) REFERENCES `performance` (`id`)
+  CONSTRAINT `fk_performance_id` FOREIGN KEY (`performance_id`) REFERENCES `performance` (`id`),
+  CONSTRAINT `fk_criteria_id` FOREIGN KEY (`criteria_id`) REFERENCES `criteria` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-DROP TABLE IF EXISTS `categories`;
-CREATE TABLE `categories` (
+DROP TABLE IF EXISTS `criteria`;
+CREATE TABLE `criteria` (
 	`id` int auto_increment,
     `category` VARCHAR(20) NOT NULL,
     primary key (`id`)
-);
-
-DROP TABLE IF EXISTS `review_category`;
-CREATE TABLE `review_category` (
-	`review_id` int auto_increment,
-    `category_id` VARCHAR(20) NOT NULL,
-    PRIMARY KEY (`review_id`,`category_id`),
-	KEY `fk_review_id_idx` (`review_id`),
-	CONSTRAINT `fk_review_category_id` FOREIGN KEY (`review_id`) REFERENCES `review` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT `fk_category_review_id` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 --
