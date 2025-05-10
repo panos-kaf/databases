@@ -223,7 +223,7 @@ CREATE TABLE `festival` (
   `year` year NOT NULL,
   `starting_date` date NOT NULL,
   `ending_date` date NOT NULL,
-  `duration` int GENERATED ALWAYS AS ((1 + to_days(`ending_date`) - to_days(`starting_date`))) STORED,
+  `duration` int GENERATED ALWAYS AS ((to_days(`ending_date`) - to_days(`starting_date`))) STORED,
   `location_id` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -376,13 +376,32 @@ DROP TABLE IF EXISTS `review`;
 CREATE TABLE `review` (
   `id` int AUTO_INCREMENT,
   `score` int NOT NULL,
-  `criteria` varchar(45) NOT NULL,
+  `criteria` int NOT NULL,
   `visitor_id` int NOT NULL,
+  `performance_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_visitor_id_idx` (`visitor_id`),
-  CONSTRAINT `fk_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`)
+  CONSTRAINT `fk_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`),
+  CONSTRAINT `fk_performance_id` FOREIGN KEY (`performance_id`) REFERENCES `performance` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `categories`;
+CREATE TABLE `categories` (
+	`id` int auto_increment,
+    `category` VARCHAR(20) NOT NULL,
+    primary key (`id`)
+);
+
+DROP TABLE IF EXISTS `review_category`;
+CREATE TABLE `review_category` (
+	`review_id` int auto_increment,
+    `category_id` VARCHAR(20) NOT NULL,
+    PRIMARY KEY (`review_id`,`category_id`),
+	KEY `fk_review_id_idx` (`review_id`),
+	CONSTRAINT `fk_review_category_id` FOREIGN KEY (`review_id`) REFERENCES `review` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT `fk_category_review_id` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
 
 --
 -- Table structure for table `role`
@@ -617,6 +636,18 @@ BEGIN
     JOIN event e ON p.event_id = e.id
     JOIN festival f ON e.festival_id = f.id
     WHERE ap.artist_id = NEW.artist_id AND f.year = prev_year3;
+    
+    -- Εισαγωγή στο insert_logs για debugging
+    INSERT INTO insert_logs (message) 
+    VALUES (
+        CONCAT('Year -1: ', artist_prev_year1_count, 
+               ', Year -2: ', artist_prev_year2_count, 
+               ', Year -3: ', artist_prev_year3_count,
+               ', 1: ', prev_year1,
+               ', 2: ', prev_year2,
+               ', 3: ', prev_year3,
+               ', current year ', current_festival_year)
+    );
     
     -- If artist performed in all three previous years, prevent this performance (would be 4th consecutive)
     IF artist_prev_year1_count > 0 AND artist_prev_year2_count > 0 AND artist_prev_year3_count > 0 THEN
