@@ -1,3 +1,5 @@
+use databases25;
+
 INSERT INTO `continent` (`name`) VALUES
 ('Europe'),
 ('Asia'),
