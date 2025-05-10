@@ -223,7 +223,7 @@ CREATE TABLE `festival` (
   `year` year NOT NULL,
   `starting_date` date NOT NULL,
   `ending_date` date NOT NULL,
-  `duration` int GENERATED ALWAYS AS ((to_days(`ending_date`) - to_days(`starting_date`))) STORED,
+  `duration` int GENERATED ALWAYS AS ((1 + to_days(`ending_date`) - to_days(`starting_date`))) STORED,
   `location_id` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
