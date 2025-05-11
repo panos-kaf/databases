@@ -1,0 +1,16 @@
+INSERT INTO `location` (`address`, `city`, `latitude`, `longitude`, `country`, `continent_id`) VALUES
+('6729 Lewis Turnpike Suite 280', 'Fieldsberg', -44.529238, -59.460854, 'Zimbabwe', 7),
+('55578 Pamela Corners Apt. 134', 'Parkerfort', 20.677913, 172.315446, 'Christmas Island', 2),
+('2629 Robbins Corners', 'South Allison', 77.472429, 96.997283, 'Swaziland', 5),
+('00513 Conner Ports', 'Herreraport', -1.581389, -91.540196, 'Papua New Guinea', 4),
+('3890 Lucas Extension Suite 748', 'Lake Jasonside', 0.105537, 36.470545, 'Guadeloupe', 1),
+('9852 Mcfarland Port Apt. 105', 'West Bettymouth', 2.239863, 158.668251, 'Norfolk Island', 7),
+('270 Alyssa Inlet', 'Gibbsburgh', -57.195772, 25.566017, 'Tokelau', 3),
+('62442 Wood Throughway', 'Lake Brittanybury', -89.015161, 39.107125, 'Svalbard & Jan Mayen Islands', 2),
+('23278 David Brook Suite 538', 'Hudsonmouth', 9.810354, 139.830241, 'Netherlands', 4),
+('05595 John Bridge', 'West Derrick', -33.391826, -58.220375, 'Honduras', 2),
+('9777 Miller Knoll', 'Browninghaven', -35.596802, -99.895607, 'Burkina Faso', 2),
+('7539 Thomas Drive Apt. 690', 'East Melanieshire', 5.87537, 141.697582, 'Liechtenstein', 7),
+('03526 Michael Underpass Apt. 186', 'Yeseniaberg', -42.980834, 117.534664, 'Central African Republic', 7),
+('2366 Tyler Valleys Apt. 162', 'New Cheryl', -3.252225, -159.694549, 'Somalia', 6),
+('5135 Peggy Alley Suite 373', 'North Joseph', -76.525152, 49.835203, 'Slovenia', 1);
