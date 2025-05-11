@@ -32,6 +32,7 @@ CREATE TABLE `artist` (
   `site` varchar(45) DEFAULT NULL,
   `instagram_profile` varchar(45) DEFAULT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
+  `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -68,6 +69,7 @@ CREATE TABLE `band` (
   `instagram_profile` varchar(100) NOT NULL,
   `site` varchar(100) NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
+  `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -119,6 +121,7 @@ CREATE TABLE `building` (
   `description` varchar(150) DEFAULT NULL,
   `capacity` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
+  `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -171,6 +174,7 @@ CREATE TABLE `equipment` (
   `name` varchar(50) NOT NULL,
   `quantity` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
+  `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`building_id`,`name`),
   CONSTRAINT `fk_building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
@@ -226,6 +230,7 @@ CREATE TABLE `festival` (
   `duration` int GENERATED ALWAYS AS ((to_days(`ending_date`) - to_days(`starting_date`))) STORED,
   `location_id` int NOT NULL,
   `image_url` VARCHAR(255) DEFAULT NULL,
+  `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `location_id_idx` (`location_id`),
   CONSTRAINT `location_id` FOREIGN KEY (`location_id`) REFERENCES `location` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -707,7 +712,7 @@ END $$
 
 DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------------
--- Capacity check per ticket insertion
+-- -------------------------------- Capacity check per ticket insertion ---------------------------------------
 DELIMITER $$
 CREATE TRIGGER check_building_capacity
 BEFORE INSERT ON ticket
@@ -734,7 +739,7 @@ BEGIN
         VALUES (NEW.event_id, NEW.visitor_id, 'Χωρητικότητα κτιρίου υπερβαίνεται. Δεν δημιουργήθηκε το εισιτήριο.');
         
         -- Παράκαμψη της εισαγωγής
-        SET NEW.event_id = NULL;
+        SET NEW.id = NULL;
     END IF;
 END $$
 
@@ -837,56 +842,83 @@ BEGIN
     SET random_purchase_type = FLOOR(1 + RAND() * 3);
 
     -- ======================
-    -- Έλεγχος αρχικά στον πίνακα ticket
+    -- Έλεγχος αν υπάρχει specific_ticket
     -- ======================
-    SELECT id INTO available_ticket_id
-    FROM ticket
-    WHERE event_id = NEW.event_id
-      AND ticket_type_id = NEW.ticket_type_id
-      AND visitor_id IS NULL
-    LIMIT 1;
+    IF NEW.specific_ticket IS NOT NULL THEN
+        -- Ψάχνουμε το συγκεκριμένο ticket
+        SELECT id INTO available_ticket_id
+        FROM ticket
+        WHERE id = NEW.specific_ticket
+          AND visitor_id IS NULL
+        LIMIT 1;
 
-    -- Αν βρεθεί εισιτήριο που είναι διαθέσιμο
-    IF available_ticket_id IS NOT NULL THEN
+        -- Αν δεν βρεθεί στο ticket, το ψάχνουμε στο resale_queue
+        IF available_ticket_id IS NULL THEN
+            SELECT ticket_id INTO resale_ticket_id
+            FROM resale_queue
+            WHERE ticket_id = NEW.specific_ticket
+            LIMIT 1;
+        END IF;
+    END IF;
+
+    -- Αν βρέθηκε είτε στο ticket είτε στο resale_queue
+    IF available_ticket_id IS NOT NULL OR resale_ticket_id IS NOT NULL THEN
+        SET available_ticket_id = IFNULL(available_ticket_id, resale_ticket_id);
+
+        -- Κάνουμε το update στο ticket
         UPDATE ticket
         SET visitor_id = NEW.visitor_id,
             purchase_type_id = random_purchase_type,
             purchase_date = NOW()
         WHERE id = available_ticket_id;
 
-        -- Καταγραφή στο buyer_log με method 'direct'
+        -- Καταγραφή στο buyer_log με method 'direct' ή 'resale'
         INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method)
-        VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), 'direct');
+        VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), IF(resale_ticket_id IS NULL, 'direct', 'resale'));
+
+        -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
+        DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
         -- Διαγραφή του αγοραστή από τον πίνακα buyer
         DELETE FROM buyer WHERE id = NEW.id;
-
-    -- ======================
-    -- Έλεγχος στον πίνακα resale_queue αν δεν υπάρχει διαθέσιμο στο ticket
-    -- ======================
     ELSE
-        SELECT ticket_id INTO resale_ticket_id
-        FROM resale_queue rq
-        JOIN ticket t ON t.id = rq.ticket_id
-        WHERE t.event_id = NEW.event_id
-          AND t.ticket_type_id = NEW.ticket_type_id
+        -- ======================
+        -- Αν δεν βρεθεί με specific_ticket, ψάχνουμε με event_id και ticket_type
+        -- ======================
+        SELECT id INTO available_ticket_id
+        FROM ticket
+        WHERE event_id = NEW.event_id
+          AND ticket_type_id = NEW.ticket_type_id
+          AND visitor_id IS NULL
         LIMIT 1;
 
-        -- Αν βρεθεί εισιτήριο στη λίστα μεταπώλησης
-        IF resale_ticket_id IS NOT NULL THEN
+        -- Αν δεν βρεθεί στο ticket, το ψάχνουμε στο resale_queue
+        IF available_ticket_id IS NULL THEN
+            SELECT ticket_id INTO resale_ticket_id
+            FROM resale_queue rq
+            JOIN ticket t ON t.id = rq.ticket_id
+            WHERE t.event_id = NEW.event_id
+              AND t.ticket_type_id = NEW.ticket_type_id
+            LIMIT 1;
+        END IF;
+
+        -- Αν βρεθεί εισιτήριο είτε στο ticket είτε στο resale_queue
+        IF available_ticket_id IS NOT NULL OR resale_ticket_id IS NOT NULL THEN
+            SET available_ticket_id = IFNULL(available_ticket_id, resale_ticket_id);
+
             -- Κάνουμε το update στο ticket
             UPDATE ticket
             SET visitor_id = NEW.visitor_id,
                 purchase_type_id = random_purchase_type,
                 purchase_date = NOW()
-            WHERE id = resale_ticket_id;
+            WHERE id = available_ticket_id;
 
-            -- Καταγραφή στο buyer_log με method 'resale'
+            -- Καταγραφή στο buyer_log
             INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method)
-            VALUES (resale_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), 'resale');
+            VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), 'resale');
 
-            -- Διαγραφή από τον πίνακα resale_queue, αφού πουλήθηκε
-            DELETE FROM resale_queue WHERE ticket_id = resale_ticket_id;
+            -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
+            DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
             -- Διαγραφή του αγοραστή από τον πίνακα buyer
             DELETE FROM buyer WHERE id = NEW.id;
@@ -896,7 +928,38 @@ BEGIN
 END $$
 
 DELIMITER ;
+-- ------------------------ Trigger για εισαγωγή tickets στον resale_queue -------------------------------------
+DELIMITER $$
 
+CREATE TRIGGER after_insert_ticket
+AFTER INSERT ON ticket
+FOR EACH ROW
+BEGIN
+    -- Ελέγχουμε αν το ticket έχει for_sale = 1
+    IF NEW.for_sale = 1 THEN
+        -- Προσθήκη στο resale_queue
+        INSERT INTO resale_queue (ticket_id)
+        VALUES (NEW.id);
+    END IF;
+END $$
+
+DELIMITER ;
+-- --------------------  Trigger για εισαγωγή ticket στο resale_queue μετά απο update ---------------------------
+DELIMITER $$
+
+CREATE TRIGGER after_update_ticket_for_sale
+AFTER UPDATE ON ticket
+FOR EACH ROW
+BEGIN
+    -- Ελέγχουμε αν το πεδίο for_sale ενημερώθηκε από 0 σε 1
+    IF OLD.for_sale = 0 AND NEW.for_sale = 1 THEN
+        -- Προσθήκη στο resale_queue
+        INSERT INTO resale_queue (ticket_id)
+        VALUES (NEW.id);
+    END IF;
+END $$
+
+DELIMITER ;
 
 
 -- --------------------------------------- END OF TRIGGERS -------------------------------------------------------
