@@ -546,6 +546,17 @@ CREATE TABLE `event_per_building_log` (
     `message` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `ticket_vip_log`;
+CREATE TABLE `ticket_vip_log` (
+    `id` INT AUTO_INCREMENT,
+    `event_id` INT NOT NULL,
+    `visitor_id` INT DEFAULT NULL,
+    `attempted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `message` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+);
+
 -- -------------------------------------  END OF LOG TABLES -----------------------------------------------
 -- --------------------------- TRIGGERS -------------------------------------------------------------------
 DELIMITER $$
@@ -577,8 +588,9 @@ BEGIN
 
     -- Έλεγχος: Αν το VIP ξεπερνάει το 10% της χωρητικότητας
     IF vip_count >= (event_capacity * 0.1) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot add more VIP tickets. Capacity limit exceeded.';
+		INSERT INTO ticket_vip_log (event_id, visitor_id, message)
+        VALUES (NEW.event_id, NEW.visitor_id, 'Cannot add more VIP tickets. Capacity limit exceeded.');
+        SET NEW.id = NULL;
     END IF;
 END $$
 
@@ -713,9 +725,9 @@ BEGIN
 END $$
 
 DELIMITER ;
-
-DELIMITER $$
 -- -----------------------------------------------------------------------------------------------------------
+DELIMITER $$
+
 CREATE TRIGGER check_no_consecutive_or_same_year_festivals
 BEFORE INSERT ON festival
 FOR EACH ROW
@@ -739,10 +751,11 @@ BEGIN
         -- Καταγραφή στο log
         INSERT INTO festival_insertion_log (location_id, year, message)
         VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.');
-
+		SET NEW.id = NULL;
+        
         -- Σήμα διακοπής της εισαγωγής
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.';
+       -- SIGNAL SQLSTATE '45000'
+        -- SET MESSAGE_TEXT = 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.';
     END IF;
 
     -- Αν βρεθεί festival την ίδια χρονιά
@@ -750,10 +763,12 @@ BEGIN
         -- Καταγραφή στο log
         INSERT INTO festival_insertion_log (location_id, year, message)
         VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.');
+        
+        SET NEW.id = NULL;
 
         -- Σήμα διακοπής της εισαγωγής
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.';
+      --  SIGNAL SQLSTATE '45000'
+       -- SET MESSAGE_TEXT = 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.';
     END IF;
 END $$
 
@@ -785,6 +800,8 @@ BEGIN
             NEW.time,
             'Conflict detected: Another event is scheduled in the same building at this time.'
         );
+        
+        SET NEW.id = NULL;
     END IF;
 END $$
 
