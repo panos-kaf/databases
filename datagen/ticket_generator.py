@@ -42,17 +42,18 @@ for event_id in events:
         used = random.randint(0, 1)
         if used == 1:
             for_sale = 0
-        else:
-            for_sale = 0 if random.random() < 0.75 else 1
 
         # Determine NULLs or values
         if used == 0 and random.random() < 0.5:
             purchase_type_id = "NULL"
             visitor_id = "NULL"
             purchase_date = "NULL"
+            for_sale = 0
         else:
+            if used == 0 and visitor_id != "NULL" and random.random() < 0.5:
+                for_sale = 1
             purchase_type_id = random.randint(1, 3)
-            visitor_id = random.randint(1, 200)
+            visitor_id = random.randint( tickets_per_event * (event_id-1), tickets_per_event * event_id)
             purchase_date = random_date()
 
         ean = random_ean13()

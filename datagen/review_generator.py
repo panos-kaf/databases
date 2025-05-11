@@ -1,18 +1,19 @@
 import random
 
 # Configuration
-festivals = range(1, 11)  # Festival IDs from 1 to 10
-events_per_festival = 15
+performances = range(1, 900)  # Festival IDs from 1 to 10
+reviews_per_performance = 5
 
 # Output SQL
-sql_lines = ["INSERT INTO `event` (`building_id`, `image_url`, `festival_id`) VALUES"]
+sql_lines = ["INSERT INTO `event` (`score`, `criteria_id`, `visitor_id`, `performance_id`) VALUES"]
 
 values = []
-for festival_id in festivals:
-    for _ in range(events_per_festival):
-        building_id = random.randint(1, 30)
-        image_url = random_image_url()
-        values.append(f"({building_id}, '{image_url}', {festival_id})")
+for performance_id in performances:
+    for _ in range(reviews_per_performance):
+        for criteria in range(1, 6):
+            if random.random() < 0.5:
+                score = random.randint(1, 5)
+                values.append(f"({score}, '{criteria}', {visitor_id}, {performance_id})")
 
 # Join all values with commas and add semicolon at end
 sql_lines.append(",\n".join(values) + ";")
