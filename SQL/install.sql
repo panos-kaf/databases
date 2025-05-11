@@ -508,14 +508,46 @@ CREATE TABLE `visitor` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
+-- ------------------------------ START OF LOG TABLES --------------------------------------------------
+
 DROP TABLE IF EXISTS `insert_logs`;
 CREATE TABLE `insert_logs` (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    message VARCHAR(255) NOT NULL,
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `message` VARCHAR(255) NOT NULL,
     timestamp DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
+DROP TABLE IF EXISTS `ticket_capacity_log`;
+CREATE TABLE `ticket_capacity_log` (
+    `id` INT AUTO_INCREMENT,
+    `event_id` INT NOT NULL,
+    `visitor_id` INT DEFAULT NULL,
+    `attempted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `message` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+);
 
+DROP TABLE IF EXISTS `festival_insertion_log`;
+CREATE TABLE `festival_insertion_log` (
+    `id` INT AUTO_INCREMENT,
+    `location_id` INT NOT NULL,
+    `year` YEAR NOT NULL,
+    `attempted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `message` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+);
+
+DROP TABLE IF EXISTS `event_per_building_log`;
+CREATE TABLE `event_per_building_log` (
+    `id` INT AUTO_INCREMENT,
+    `building_id` INT NOT NULL,
+    `event_id` INT NOT NULL,
+    `conflict_time` TIME NOT NULL,
+    `message` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- -------------------------------------  END OF LOG TABLES -----------------------------------------------
+-- --------------------------- TRIGGERS -------------------------------------------------------------------
 DELIMITER $$
 
 CREATE TRIGGER check_vip_capacity
@@ -551,7 +583,7 @@ BEGIN
 END $$
 
 DELIMITER ;
-
+-- -----------------------------------------------------------------------------------------------------------
 DELIMITER $$
 
 CREATE TRIGGER check_single_ticket_per_event
@@ -577,7 +609,7 @@ BEGIN
 END $$
 
 DELIMITER ;
-
+-- -----------------------------------------------------------------------------------------------------
 DELIMITER $$
 
 CREATE TRIGGER check_consecutive_festival_years
@@ -648,15 +680,48 @@ BEGIN
 END $$
 
 DELIMITER ;
+-- -----------------------------------------------------------------------------------------------------------------
+-- Capacity check per ticket insertion
+DELIMITER $$
+CREATE TRIGGER check_building_capacity
+BEFORE INSERT ON ticket
+FOR EACH ROW
+BEGIN
+    DECLARE current_tickets INT;
+    DECLARE building_capacity INT;
+
+    -- Βρίσκουμε τη χωρητικότητα του κτιρίου που αντιστοιχεί στο event
+    SELECT b.capacity INTO building_capacity
+    FROM event e
+    JOIN building b ON e.building_id = b.id
+    WHERE e.id = NEW.event_id;
+
+    -- Βρίσκουμε πόσα εισιτήρια έχουν ήδη εκδοθεί για το συγκεκριμένο event
+    SELECT COUNT(*) INTO current_tickets
+    FROM ticket
+    WHERE event_id = NEW.event_id;
+
+    -- Αν τα ήδη εκδοθέντα εισιτήρια + το καινούριο υπερβαίνουν τη χωρητικότητα
+    IF (current_tickets + 1) > building_capacity THEN
+        -- Καταγραφή στο ticket_capacity_log
+        INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
+        VALUES (NEW.event_id, NEW.visitor_id, 'Χωρητικότητα κτιρίου υπερβαίνεται. Δεν δημιουργήθηκε το εισιτήριο.');
+        
+        -- Παράκαμψη της εισαγωγής
+        SET NEW.event_id = NULL;
+    END IF;
+END $$
+
+DELIMITER ;
 
 DELIMITER $$
-
+-- -----------------------------------------------------------------------------------------------------------
 CREATE TRIGGER check_no_consecutive_or_same_year_festivals
 BEFORE INSERT ON festival
 FOR EACH ROW
 BEGIN
-    DECLARE festival_count INT;
-    DECLARE same_year_count INT;
+    DECLARE festival_count INT DEFAULT 0;
+    DECLARE same_year_count INT DEFAULT 0;
 
     -- Έλεγχος αν υπάρχει ήδη festival την προηγούμενη ή την επόμενη χρονιά στην ίδια τοποθεσία
     SELECT COUNT(*) INTO festival_count
@@ -671,53 +736,62 @@ BEGIN
 
     -- Αν βρεθεί festival στην ίδια τοποθεσία την προηγούμενη ή την επόμενη χρονιά
     IF festival_count > 0 THEN
+        -- Καταγραφή στο log
+        INSERT INTO festival_insertion_log (location_id, year, message)
+        VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.');
+
+        -- Σήμα διακοπής της εισαγωγής
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.';
     END IF;
 
     -- Αν βρεθεί festival την ίδια χρονιά
     IF same_year_count > 0 THEN
+        -- Καταγραφή στο log
+        INSERT INTO festival_insertion_log (location_id, year, message)
+        VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.');
+
+        -- Σήμα διακοπής της εισαγωγής
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.';
     END IF;
 END $$
 
 DELIMITER ;
+-- --------------------------------------------------------------------------------------------------------------
 
 DELIMITER $$
 
--- Capacity check per ticket insertion
-CREATE TRIGGER check_building_capacity
-BEFORE INSERT ON ticket
+CREATE TRIGGER check_event_unique_in_building
+BEFORE INSERT ON performance
 FOR EACH ROW
 BEGIN
-    DECLARE current_tickets INT;
-    DECLARE building_capacity INT;
+    DECLARE event_count INT DEFAULT 0;
 
-    -- Βρίσκουμε τη χωρητικότητα του building που αντιστοιχεί στο event
-    SELECT b.capacity INTO building_capacity
-    FROM event e
-    JOIN building b ON e.building_id = b.id
-    WHERE e.id = NEW.event_id;
+    -- Έλεγχος αν υπάρχει ήδη άλλο event στο ίδιο κτίριο την ίδια χρονική στιγμή
+    SELECT COUNT(*) INTO event_count
+    FROM performance p
+    INNER JOIN event e ON p.event_id = e.id
+    WHERE e.building_id = (SELECT building_id FROM event WHERE id = NEW.event_id)
+      AND p.time = NEW.time
+      AND p.event_id != NEW.event_id;
 
-    -- Βρίσκουμε πόσα εισιτήρια έχουν ήδη εκδοθεί για το συγκεκριμένο event
-    SELECT COUNT(*) INTO current_tickets
-    FROM ticket
-    WHERE event_id = NEW.event_id;
-
-    -- Αν τα ήδη εκδοθέντα εισιτήρια + το καινούριο υπερβαίνουν τη χωρητικότητα
-    IF (current_tickets + 1) > building_capacity THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Δεν είναι δυνατή η δημιουργία του εισιτηρίου: Έχει ξεπεραστεί η χωρητικότητα του κτιρίου.';
+    -- Αν υπάρχει σύγκρουση, κάνουμε log την αποτυχία
+    IF event_count > 0 THEN
+        INSERT INTO event_per_building_log (building_id, event_id, conflict_time, message)
+        VALUES (
+            (SELECT building_id FROM event WHERE id = NEW.event_id),
+            NEW.event_id,
+            NEW.time,
+            'Conflict detected: Another event is scheduled in the same building at this time.'
+        );
     END IF;
 END $$
 
 DELIMITER ;
 
 
-
-
-
+-- --------------------------------------- END OF TRIGGERS -------------------------------------------------------
 
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
