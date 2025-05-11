@@ -580,6 +580,7 @@ CREATE TABLE `buyer_log` (
 -- --------------------------- TRIGGERS -------------------------------------------------------------------
 DELIMITER $$
 
+DROP TRIGGER IF EXISTS check_vip_capacity;
 CREATE TRIGGER check_vip_capacity
 BEFORE INSERT ON ticket
 FOR EACH ROW
@@ -616,7 +617,7 @@ END $$
 DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------
 DELIMITER $$
-
+DROP TRIGGER IF EXISTS check_single_ticket_per_event;
 CREATE TRIGGER check_single_ticket_per_event
 BEFORE INSERT ON ticket
 FOR EACH ROW
@@ -642,7 +643,7 @@ END $$
 DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------
 DELIMITER $$
-
+DROP TRIGGER IF EXISTS check_consecutive_festival_years;
 CREATE TRIGGER check_consecutive_festival_years
 BEFORE INSERT ON artist_performance
 FOR EACH ROW
@@ -714,6 +715,7 @@ DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------------
 -- -------------------------------- Capacity check per ticket insertion ---------------------------------------
 DELIMITER $$
+DROP TRIGGER IF EXISTS check_building_capacity;
 CREATE TRIGGER check_building_capacity
 BEFORE INSERT ON ticket
 FOR EACH ROW
@@ -738,8 +740,9 @@ BEGIN
         INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
         VALUES (NEW.event_id, NEW.visitor_id, 'Χωρητικότητα κτιρίου υπερβαίνεται. Δεν δημιουργήθηκε το εισιτήριο.');
         
-        -- Παράκαμψη της εισαγωγής
-        SET NEW.id = NULL;
+        -- Ακύρωση της εισαγωγής με custom error
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Building capacity exceeded. Ticket insertion aborted.';
     END IF;
 END $$
 
@@ -747,6 +750,7 @@ DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------
 DELIMITER $$
 
+DROP TRIGGER IF EXISTS check_no_consecutive_or_same_yea_festivals;
 CREATE TRIGGER check_no_consecutive_or_same_year_festivals
 BEFORE INSERT ON festival
 FOR EACH ROW
@@ -795,7 +799,7 @@ DELIMITER ;
 -- --------------------------------------------------------------------------------------------------------------
 
 DELIMITER $$
-
+DROP TRIGGER IF EXISTS check_event_unique_in_building;
 CREATE TRIGGER check_event_unique_in_building
 BEFORE INSERT ON performance
 FOR EACH ROW
@@ -829,7 +833,7 @@ DELIMITER ;
 -- --------------------------------------------------------------------------------------------------------
 
 DELIMITER $$
-
+DROP TRIGGER IF EXISTS after_insert_buyer;
 CREATE TRIGGER after_insert_buyer
 AFTER INSERT ON buyer
 FOR EACH ROW
@@ -930,7 +934,7 @@ END $$
 DELIMITER ;
 -- ------------------------ Trigger για εισαγωγή tickets στον resale_queue -------------------------------------
 DELIMITER $$
-
+DROP TRIGGER IF EXISTS after_insert_ticket;
 CREATE TRIGGER after_insert_ticket
 AFTER INSERT ON ticket
 FOR EACH ROW
@@ -946,7 +950,7 @@ END $$
 DELIMITER ;
 -- --------------------  Trigger για εισαγωγή ticket στο resale_queue μετά απο update ---------------------------
 DELIMITER $$
-
+DROP TRIGGER IF EXISTS after_update_ticket_for_sale;
 CREATE TRIGGER after_update_ticket_for_sale
 AFTER UPDATE ON ticket
 FOR EACH ROW
