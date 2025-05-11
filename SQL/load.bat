@@ -7,7 +7,7 @@ set "DIR=inserts"
 
 :: Optional: If using .my.cnf (or my.ini), you don't need to include -u or -p
 :: If you want to set username/password explicitly, uncomment the next line:
-:: set "MYSQL=mysql -u root -proot"
+set "MYSQL=mysql -u root -proot"
 set "MYSQL=mysql"
 
 :: Execute each SQL file
