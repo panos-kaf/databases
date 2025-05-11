@@ -1,6 +1,6 @@
 INSERT INTO `criteria` (category) VALUES
-("artist's performance"),
-("sound and lighting"),
-("presentation"),
-("orchestration")
-("overall impression");
+('artist performance'),
+('sound and lighting'),
+('presentation'),
+('orchestration'),
+('overall impression');
