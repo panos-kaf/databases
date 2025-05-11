@@ -557,6 +557,20 @@ CREATE TABLE `ticket_vip_log` (
     PRIMARY KEY (`id`)
 );
 
+DROP TABLE IF EXISTS `buyer_log`;
+CREATE TABLE `buyer_log` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `ticket_id` INT NOT NULL,
+    `visitor_id` INT NOT NULL,
+    `event_id` INT NOT NULL,
+    `purchase_type_id` INT NOT NULL,
+    `purchase_date` DATETIME NOT NULL,
+    `purchase_method` VARCHAR(20) NOT NULL, -- 'direct' ή 'resale'
+    CONSTRAINT `fk_buyer_log_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `ticket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_buyer_log_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
 -- -------------------------------------  END OF LOG TABLES -----------------------------------------------
 -- --------------------------- TRIGGERS -------------------------------------------------------------------
 DELIMITER $$
@@ -806,6 +820,83 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+-- --------------------------------------------------------------------------------------------------------
+
+DELIMITER $$
+
+CREATE TRIGGER after_insert_buyer
+AFTER INSERT ON buyer
+FOR EACH ROW
+BEGIN
+    DECLARE available_ticket_id INT;
+    DECLARE resale_ticket_id INT;
+    DECLARE random_purchase_type INT;
+
+    -- Επιλογή τυχαίου purchase_type (1, 2 ή 3)
+    SET random_purchase_type = FLOOR(1 + RAND() * 3);
+
+    -- ======================
+    -- Έλεγχος αρχικά στον πίνακα ticket
+    -- ======================
+    SELECT id INTO available_ticket_id
+    FROM ticket
+    WHERE event_id = NEW.event_id
+      AND ticket_type_id = NEW.ticket_type_id
+      AND visitor_id IS NULL
+    LIMIT 1;
+
+    -- Αν βρεθεί εισιτήριο που είναι διαθέσιμο
+    IF available_ticket_id IS NOT NULL THEN
+        UPDATE ticket
+        SET visitor_id = NEW.visitor_id,
+            purchase_type_id = random_purchase_type,
+            purchase_date = NOW()
+        WHERE id = available_ticket_id;
+
+        -- Καταγραφή στο buyer_log με method 'direct'
+        INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method)
+        VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), 'direct');
+
+        -- Διαγραφή του αγοραστή από τον πίνακα buyer
+        DELETE FROM buyer WHERE id = NEW.id;
+
+    -- ======================
+    -- Έλεγχος στον πίνακα resale_queue αν δεν υπάρχει διαθέσιμο στο ticket
+    -- ======================
+    ELSE
+        SELECT ticket_id INTO resale_ticket_id
+        FROM resale_queue rq
+        JOIN ticket t ON t.id = rq.ticket_id
+        WHERE t.event_id = NEW.event_id
+          AND t.ticket_type_id = NEW.ticket_type_id
+        LIMIT 1;
+
+        -- Αν βρεθεί εισιτήριο στη λίστα μεταπώλησης
+        IF resale_ticket_id IS NOT NULL THEN
+            -- Κάνουμε το update στο ticket
+            UPDATE ticket
+            SET visitor_id = NEW.visitor_id,
+                purchase_type_id = random_purchase_type,
+                purchase_date = NOW()
+            WHERE id = resale_ticket_id;
+
+            -- Καταγραφή στο buyer_log με method 'resale'
+            INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method)
+            VALUES (resale_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), 'resale');
+
+            -- Διαγραφή από τον πίνακα resale_queue, αφού πουλήθηκε
+            DELETE FROM resale_queue WHERE ticket_id = resale_ticket_id;
+
+            -- Διαγραφή του αγοραστή από τον πίνακα buyer
+            DELETE FROM buyer WHERE id = NEW.id;
+        END IF;
+    END IF;
+
+END $$
+
+DELIMITER ;
+
 
 
 -- --------------------------------------- END OF TRIGGERS -------------------------------------------------------
