@@ -522,16 +522,6 @@ CREATE TABLE `insert_logs` (
     timestamp DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
-DROP TABLE IF EXISTS `ticket_capacity_log`;
-CREATE TABLE `ticket_capacity_log` (
-    `id` INT AUTO_INCREMENT,
-    `event_id` INT NOT NULL,
-    `visitor_id` INT DEFAULT NULL,
-    `attempted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `message` VARCHAR(255) NOT NULL,
-    PRIMARY KEY (`id`)
-);
-
 DROP TABLE IF EXISTS `festival_insertion_log`;
 CREATE TABLE `festival_insertion_log` (
     `id` INT AUTO_INCREMENT,
@@ -736,9 +726,6 @@ BEGIN
 
     -- Αν τα ήδη εκδοθέντα εισιτήρια + το καινούριο υπερβαίνουν τη χωρητικότητα
     IF (current_tickets + 1) > building_capacity THEN
-        -- Καταγραφή στο ticket_capacity_log
-        INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
-        VALUES (NEW.event_id, NEW.visitor_id, 'Χωρητικότητα κτιρίου υπερβαίνεται. Δεν δημιουργήθηκε το εισιτήριο.');
         
         -- Ακύρωση της εισαγωγής με custom error
         SIGNAL SQLSTATE '45000'
@@ -978,7 +965,5 @@ DELIMITER ;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
-
 
 -- Dump completed on 2025-04-28 13:30:54
