@@ -135,7 +135,7 @@ DROP TABLE IF EXISTS `buyer`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `buyer` (
   `id` int AUTO_INCREMENT,
-  `visitor_id` int DEFAULT NULL,
+  `visitor_id` int NOT NULL,
   `event_id` int DEFAULT NULL,
   `ticket_type_id` int DEFAULT NULL,
   `specific_ticket` int DEFAULT NULL,
