@@ -583,15 +583,17 @@ CREATE TABLE `buyer_log` (
 -- --------------------------- TRIGGERS -------------------------------------------------------------------
 DELIMITER $$
 
+DELIMITER $$
+
 DROP TRIGGER IF EXISTS check_vip_capacity;
 CREATE TRIGGER check_vip_capacity
-BEFORE INSERT ON ticket
+AFTER INSERT ON ticket
 FOR EACH ROW
 BEGIN
     DECLARE event_building_id INT;
     DECLARE event_capacity INT;
     DECLARE vip_count INT;
-    
+
     -- Βρίσκουμε το κτίριο που θα γίνει το event
     SELECT building_id INTO event_building_id
     FROM event
@@ -610,40 +612,52 @@ BEGIN
     );
 
     -- Έλεγχος: Αν το VIP ξεπερνάει το 10% της χωρητικότητας
-    IF vip_count >= (event_capacity * 0.1) THEN
-		INSERT INTO ticket_vip_log (event_id, visitor_id, message)
+    IF vip_count > (event_capacity * 0.1) THEN
+        -- Καταγραφή στο log
+        INSERT INTO ticket_vip_log (event_id, visitor_id, message)
         VALUES (NEW.event_id, NEW.visitor_id, 'Cannot add more VIP tickets. Capacity limit exceeded.');
-        SET NEW.id = NULL;
+        
+        -- Διαγραφή του εισιτηρίου που μόλις εισήχθη
+        DELETE FROM ticket WHERE id = NEW.id;
     END IF;
 END $$
 
 DELIMITER ;
+
+
+DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------
 DELIMITER $$
+
 DROP TRIGGER IF EXISTS check_single_ticket_per_event;
 CREATE TRIGGER check_single_ticket_per_event
-BEFORE INSERT ON ticket
+AFTER INSERT ON ticket
 FOR EACH ROW
 BEGIN
     DECLARE ticket_count INT;
 
-    -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το event
+    -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το συγκεκριμένο event
     SELECT COUNT(*) INTO ticket_count
     FROM ticket
-    WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id;
+    WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id
+      AND id != NEW.id;
 
-    -- Σφάλμα αν υπάρχει ήδη ένα εισιτήριο
+    -- Αν βρεθεί εισιτήριο για το ίδιο event
     IF ticket_count > 0 THEN
+        -- Καταγραφή στο log
         INSERT INTO insert_logs (message, timestamp)
         VALUES (
             CONCAT('Visitor with ID ', NEW.visitor_id, ' already owned ticket for this event with ID ', NEW.event_id),
             NOW()
         );
-        SET NEW.id = NULL;
+
+        -- Διαγραφή του νέου εισιτηρίου
+        DELETE FROM ticket WHERE id = NEW.id;
     END IF;
 END $$
 
 DELIMITER ;
+
 -- -----------------------------------------------------------------------------------------------------
 DELIMITER $$
 DROP TRIGGER IF EXISTS check_consecutive_festival_years;
@@ -753,8 +767,11 @@ DELIMITER ;
 DELIMITER $$
 
 DROP TRIGGER IF EXISTS check_no_consecutive_or_same_yea_festivals;
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS check_no_consecutive_or_same_year_festivals;
 CREATE TRIGGER check_no_consecutive_or_same_year_festivals
-BEFORE INSERT ON festival
+AFTER INSERT ON festival
 FOR EACH ROW
 BEGIN
     DECLARE festival_count INT DEFAULT 0;
@@ -764,23 +781,23 @@ BEGIN
     SELECT COUNT(*) INTO festival_count
     FROM festival
     WHERE location_id = NEW.location_id 
-      AND (year = NEW.year - 1 OR year = NEW.year + 1);
+      AND (year = NEW.year - 1 OR year = NEW.year + 1)
+      AND id != NEW.id;
 
-    -- Έλεγχος αν υπάρχει ήδη festival την ίδια χρονιά σε οποιαδήποτε τοποθεσία
+    -- Έλεγχος αν υπάρχει ήδη festival την ίδια χρονιά σε διαφορετική τοποθεσία
     SELECT COUNT(*) INTO same_year_count
     FROM festival
-    WHERE year = NEW.year;
+    WHERE year = NEW.year
+      AND id != NEW.id;
 
     -- Αν βρεθεί festival στην ίδια τοποθεσία την προηγούμενη ή την επόμενη χρονιά
     IF festival_count > 0 THEN
         -- Καταγραφή στο log
         INSERT INTO festival_insertion_log (location_id, year, message)
         VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.');
-		SET NEW.id = NULL;
-        
-        -- Σήμα διακοπής της εισαγωγής
-       -- SIGNAL SQLSTATE '45000'
-        -- SET MESSAGE_TEXT = 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.';
+
+        -- Διαγραφή από τον πίνακα festival
+        DELETE FROM festival WHERE id = NEW.id;
     END IF;
 
     -- Αν βρεθεί festival την ίδια χρονιά
@@ -788,22 +805,21 @@ BEGIN
         -- Καταγραφή στο log
         INSERT INTO festival_insertion_log (location_id, year, message)
         VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.');
-        
-        SET NEW.id = NULL;
 
-        -- Σήμα διακοπής της εισαγωγής
-      --  SIGNAL SQLSTATE '45000'
-       -- SET MESSAGE_TEXT = 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.';
+        -- Διαγραφή από τον πίνακα festival
+        DELETE FROM festival WHERE id = NEW.id;
     END IF;
 END $$
 
 DELIMITER ;
+
 -- --------------------------------------------------------------------------------------------------------------
 
 DELIMITER $$
+
 DROP TRIGGER IF EXISTS check_event_unique_in_building;
 CREATE TRIGGER check_event_unique_in_building
-BEFORE INSERT ON performance
+AFTER INSERT ON performance
 FOR EACH ROW
 BEGIN
     DECLARE event_count INT DEFAULT 0;
@@ -814,10 +830,11 @@ BEGIN
     INNER JOIN event e ON p.event_id = e.id
     WHERE e.building_id = (SELECT building_id FROM event WHERE id = NEW.event_id)
       AND p.time = NEW.time
-      AND p.event_id != NEW.event_id;
+      AND p.id != NEW.id;  -- δεν ελέγχουμε το ίδιο event που μόλις μπήκε
 
-    -- Αν υπάρχει σύγκρουση, κάνουμε log την αποτυχία
+    -- Αν υπάρχει σύγκρουση, κάνουμε log την αποτυχία και διαγράφουμε το event
     IF event_count > 0 THEN
+        -- Καταγραφή στο log
         INSERT INTO event_per_building_log (building_id, event_id, conflict_time, message)
         VALUES (
             (SELECT building_id FROM event WHERE id = NEW.event_id),
@@ -825,12 +842,14 @@ BEGIN
             NEW.time,
             'Conflict detected: Another event is scheduled in the same building at this time.'
         );
-        
-        SET NEW.id = NULL;
+
+        -- Διαγραφή του conflict από τον πίνακα
+        DELETE FROM performance WHERE id = NEW.id;
     END IF;
 END $$
 
 DELIMITER ;
+
 
 -- --------------------------------------------------------------------------------------------------------
 
@@ -888,9 +907,9 @@ BEGIN
         -- Διαγραφή του αγοραστή από τον πίνακα buyer
         DELETE FROM buyer WHERE id = NEW.id;
     ELSE
-        -- ======================
+        
         -- Αν δεν βρεθεί με specific_ticket, ψάχνουμε με event_id και ticket_type
-        -- ======================
+       
         SELECT id INTO available_ticket_id
         FROM ticket
         WHERE event_id = NEW.event_id
