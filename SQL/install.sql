@@ -735,9 +735,10 @@ DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------------
 -- -------------------------------- Capacity check per ticket insertion ---------------------------------------
 DELIMITER $$
-DROP TRIGGER IF EXISTS check_building_capacity_after;
-CREATE TRIGGER check_building_capacity_after
-AFTER INSERT ON ticket
+
+DROP TRIGGER IF EXISTS check_building_capacity_before;
+CREATE TRIGGER check_building_capacity_before
+BEFORE INSERT ON ticket
 FOR EACH ROW
 BEGIN
     DECLARE current_tickets INT;
@@ -754,17 +755,19 @@ BEGIN
     FROM ticket
     WHERE event_id = NEW.event_id;
 
-    -- Αν τα ήδη εκδοθέντα εισιτήρια υπερβαίνουν τη χωρητικότητα
-    IF (current_tickets) > building_capacity THEN
+    -- Αν τα ήδη εκδοθέντα εισιτήρια + το νέο ξεπερνούν τη χωρητικότητα
+    IF (current_tickets + 1) > building_capacity THEN
         -- Καταγραφή στο log για debugging
         INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
-        VALUES (NEW.event_id, NEW.visitor_id, 'Building capacity exceeded. Ticket was deleted.');
+        VALUES (NEW.event_id, NEW.visitor_id, 'Building capacity exceeded. Ticket was not inserted.');
 
-        -- Διαγραφή του εισιτηρίου
-        DELETE FROM ticket WHERE id = NEW.id;
+        -- Παράκαμψη της εισαγωγής
+        SET NEW.id = NULL;
     END IF;
 END $$
+
 DELIMITER ;
+
 
 -- -----------------------------------------------------------------------------------------------------------
 
