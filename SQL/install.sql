@@ -136,12 +136,11 @@ DROP TABLE IF EXISTS `buyer`;
 CREATE TABLE `buyer` (
   `id` int AUTO_INCREMENT,
   `visitor_id` int NOT NULL,
-  `event_id` int DEFAULT NULL,
-  `ticket_type_id` int DEFAULT NULL,
-  `specific_ticket` int DEFAULT NULL,
+  `event_id` int NOT NULL,
+  `ticket_type_id` int NOT NULL,
+  `specific_ticket` int NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `event_visitor_id_UNIQUE` (`event_id`,`visitor_id`),
   CONSTRAINT `buyer_event` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `buyer_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
@@ -659,7 +658,6 @@ BEGIN
 END $$
 
 DELIMITER ;
-
 
 -- -----------------------------------------------------------------------------------------------------
 DELIMITER $$
