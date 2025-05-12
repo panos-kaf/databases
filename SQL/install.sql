@@ -233,7 +233,7 @@ CREATE TABLE `festival` (
   `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `location_id_idx` (`location_id`),
-  CONSTRAINT `location_id` FOREIGN KEY (`location_id`) REFERENCES `location` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT `location_id` FOREIGN KEY (`location_id`) REFERENCES `location` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -585,9 +585,11 @@ DELIMITER $$
 
 DELIMITER $$
 
+DELIMITER $$
+
 DROP TRIGGER IF EXISTS check_vip_capacity;
 CREATE TRIGGER check_vip_capacity
-AFTER INSERT ON ticket
+BEFORE INSERT ON ticket
 FOR EACH ROW
 BEGIN
     DECLARE event_building_id INT;
@@ -612,17 +614,18 @@ BEGIN
     );
 
     -- Έλεγχος: Αν το VIP ξεπερνάει το 10% της χωρητικότητας
-    IF vip_count > (event_capacity * 0.1) THEN
+    IF vip_count >= (event_capacity * 0.1) THEN
         -- Καταγραφή στο log
         INSERT INTO ticket_vip_log (event_id, visitor_id, message)
         VALUES (NEW.event_id, NEW.visitor_id, 'Cannot add more VIP tickets. Capacity limit exceeded.');
         
-        -- Διαγραφή του εισιτηρίου που μόλις εισήχθη
-        DELETE FROM ticket WHERE id = NEW.id;
+        -- Παράκαμψη του insert
+        SET NEW.id = NULL;
     END IF;
 END $$
 
 DELIMITER ;
+
 
 
 DELIMITER ;
@@ -631,7 +634,7 @@ DELIMITER $$
 
 DROP TRIGGER IF EXISTS check_single_ticket_per_event;
 CREATE TRIGGER check_single_ticket_per_event
-AFTER INSERT ON ticket
+BEFORE INSERT ON ticket
 FOR EACH ROW
 BEGIN
     DECLARE ticket_count INT;
@@ -639,24 +642,24 @@ BEGIN
     -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το συγκεκριμένο event
     SELECT COUNT(*) INTO ticket_count
     FROM ticket
-    WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id
-      AND id != NEW.id;
+    WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id;
 
-    -- Αν βρεθεί εισιτήριο για το ίδιο event
+    -- Αν βρεθεί ήδη εισιτήριο για το ίδιο event
     IF ticket_count > 0 THEN
         -- Καταγραφή στο log
         INSERT INTO insert_logs (message, timestamp)
         VALUES (
-            CONCAT('Visitor with ID ', NEW.visitor_id, ' already owned ticket for this event with ID ', NEW.event_id),
+            CONCAT('Visitor with ID ', NEW.visitor_id, ' already owns a ticket for event with ID ', NEW.event_id),
             NOW()
         );
 
-        -- Διαγραφή του νέου εισιτηρίου
-        DELETE FROM ticket WHERE id = NEW.id;
+        -- Παράκαμψη του insert
+        SET NEW.id = NULL;
     END IF;
 END $$
 
 DELIMITER ;
+
 
 -- -----------------------------------------------------------------------------------------------------
 DELIMITER $$
@@ -764,54 +767,41 @@ END $$
 DELIMITER ;
 
 -- -----------------------------------------------------------------------------------------------------------
+
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS check_no_consecutive_or_same_yea_festivals;
-DELIMITER $$
-
-DROP TRIGGER IF EXISTS check_no_consecutive_or_same_year_festivals;
-CREATE TRIGGER check_no_consecutive_or_same_year_festivals
-AFTER INSERT ON festival
+DROP TRIGGER IF EXISTS check_building_capacity_before;
+CREATE TRIGGER check_building_capacity_before
+BEFORE INSERT ON ticket
 FOR EACH ROW
 BEGIN
-    DECLARE festival_count INT DEFAULT 0;
-    DECLARE same_year_count INT DEFAULT 0;
+    DECLARE current_tickets INT;
+    DECLARE building_capacity INT;
 
-    -- Έλεγχος αν υπάρχει ήδη festival την προηγούμενη ή την επόμενη χρονιά στην ίδια τοποθεσία
-    SELECT COUNT(*) INTO festival_count
-    FROM festival
-    WHERE location_id = NEW.location_id 
-      AND (year = NEW.year - 1 OR year = NEW.year + 1)
-      AND id != NEW.id;
+    -- Βρίσκουμε τη χωρητικότητα του κτιρίου που αντιστοιχεί στο event
+    SELECT b.capacity INTO building_capacity
+    FROM event e
+    JOIN building b ON e.building_id = b.id
+    WHERE e.id = NEW.event_id;
 
-    -- Έλεγχος αν υπάρχει ήδη festival την ίδια χρονιά σε διαφορετική τοποθεσία
-    SELECT COUNT(*) INTO same_year_count
-    FROM festival
-    WHERE year = NEW.year
-      AND id != NEW.id;
+    -- Βρίσκουμε πόσα εισιτήρια έχουν ήδη εκδοθεί για το συγκεκριμένο event
+    SELECT COUNT(*) INTO current_tickets
+    FROM ticket
+    WHERE event_id = NEW.event_id;
 
-    -- Αν βρεθεί festival στην ίδια τοποθεσία την προηγούμενη ή την επόμενη χρονιά
-    IF festival_count > 0 THEN
+    -- Αν τα ήδη εκδοθέντα εισιτήρια + το καινούριο υπερβαίνουν τη χωρητικότητα
+    IF (current_tickets + 1) > building_capacity THEN
         -- Καταγραφή στο log
-        INSERT INTO festival_insertion_log (location_id, year, message)
-        VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπονται διαδοχικά φεστιβάλ στην ίδια τοποθεσία.');
+        INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
+        VALUES (NEW.event_id, NEW.visitor_id, 'Building capacity exceeded. Ticket insertion skipped.');
 
-        -- Διαγραφή από τον πίνακα festival
-        DELETE FROM festival WHERE id = NEW.id;
-    END IF;
-
-    -- Αν βρεθεί festival την ίδια χρονιά
-    IF same_year_count > 0 THEN
-        -- Καταγραφή στο log
-        INSERT INTO festival_insertion_log (location_id, year, message)
-        VALUES (NEW.location_id, NEW.year, 'Δεν επιτρέπεται δεύτερο φεστιβάλ την ίδια χρονιά.');
-
-        -- Διαγραφή από τον πίνακα festival
-        DELETE FROM festival WHERE id = NEW.id;
+        -- Παράκαμψη του insert
+        SET NEW.id = NULL;
     END IF;
 END $$
 
 DELIMITER ;
+
 
 -- --------------------------------------------------------------------------------------------------------------
 
@@ -819,37 +809,41 @@ DELIMITER $$
 
 DROP TRIGGER IF EXISTS check_event_unique_in_building;
 CREATE TRIGGER check_event_unique_in_building
-AFTER INSERT ON performance
+BEFORE INSERT ON performance
 FOR EACH ROW
 BEGIN
     DECLARE event_count INT DEFAULT 0;
+    DECLARE building_id INT;
+
+    -- Βρίσκουμε το κτίριο που αντιστοιχεί στο event
+    SELECT building_id INTO building_id
+    FROM event
+    WHERE id = NEW.event_id;
 
     -- Έλεγχος αν υπάρχει ήδη άλλο event στο ίδιο κτίριο την ίδια χρονική στιγμή
     SELECT COUNT(*) INTO event_count
     FROM performance p
     INNER JOIN event e ON p.event_id = e.id
-    WHERE e.building_id = (SELECT building_id FROM event WHERE id = NEW.event_id)
-      AND p.time = NEW.time
-      AND p.id != NEW.id;  -- δεν ελέγχουμε το ίδιο event που μόλις μπήκε
+    WHERE e.building_id = building_id
+      AND p.time = NEW.time;
 
-    -- Αν υπάρχει σύγκρουση, κάνουμε log την αποτυχία και διαγράφουμε το event
+    -- Αν υπάρχει conflict, το παρακάμπτουμε και το καταγράφουμε στο log
     IF event_count > 0 THEN
         -- Καταγραφή στο log
         INSERT INTO event_per_building_log (building_id, event_id, conflict_time, message)
         VALUES (
-            (SELECT building_id FROM event WHERE id = NEW.event_id),
+            building_id,
             NEW.event_id,
             NEW.time,
             'Conflict detected: Another event is scheduled in the same building at this time.'
         );
 
-        -- Διαγραφή του conflict από τον πίνακα
-        DELETE FROM performance WHERE id = NEW.id;
+        -- Παράκαμψη του insert
+        SET NEW.id = NULL;
     END IF;
 END $$
 
 DELIMITER ;
-
 
 -- --------------------------------------------------------------------------------------------------------
 
