@@ -552,6 +552,19 @@ CREATE TABLE `ticket_vip_log` (
     PRIMARY KEY (`id`)
 );
 
+DROP TABLE IF EXISTS `ticket_capacity_log`;
+CREATE TABLE `ticket_capacity_log` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `event_id` INT NOT NULL,
+    `visitor_id` INT DEFAULT NULL,
+    `ticket_id` INT DEFAULT NULL,
+    `attempted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `message` VARCHAR(255) NOT NULL,
+    CONSTRAINT `fk_event_ticket_capacity` FOREIGN KEY (`event_id`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_visitor_ticket_capacity` FOREIGN KEY (`visitor_id`) REFERENCES `visitor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 DROP TABLE IF EXISTS `buyer_log`;
 CREATE TABLE `buyer_log` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -705,9 +718,9 @@ DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------------
 -- -------------------------------- Capacity check per ticket insertion ---------------------------------------
 DELIMITER $$
-DROP TRIGGER IF EXISTS check_building_capacity;
-CREATE TRIGGER check_building_capacity
-BEFORE INSERT ON ticket
+DROP TRIGGER IF EXISTS check_building_capacity_after;
+CREATE TRIGGER check_building_capacity_after
+AFTER INSERT ON ticket
 FOR EACH ROW
 BEGIN
     DECLARE current_tickets INT;
@@ -724,16 +737,18 @@ BEGIN
     FROM ticket
     WHERE event_id = NEW.event_id;
 
-    -- Αν τα ήδη εκδοθέντα εισιτήρια + το καινούριο υπερβαίνουν τη χωρητικότητα
-    IF (current_tickets + 1) > building_capacity THEN
-        
-        -- Ακύρωση της εισαγωγής με custom error
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Building capacity exceeded. Ticket insertion aborted.';
+    -- Αν τα ήδη εκδοθέντα εισιτήρια υπερβαίνουν τη χωρητικότητα
+    IF (current_tickets) > building_capacity THEN
+        -- Καταγραφή στο log για debugging
+        INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
+        VALUES (NEW.event_id, NEW.visitor_id, 'Building capacity exceeded. Ticket was deleted.');
+
+        -- Διαγραφή του εισιτηρίου
+        DELETE FROM ticket WHERE id = NEW.id;
     END IF;
 END $$
-
 DELIMITER ;
+
 -- -----------------------------------------------------------------------------------------------------------
 DELIMITER $$
 
