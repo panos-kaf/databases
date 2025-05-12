@@ -30,14 +30,15 @@ set "MYSQL=mysql -u root -proot"
 %MYSQL% %DB% < "%DIR%\building.sql"
 %MYSQL% %DB% < "%DIR%\event.sql"
 %MYSQL% %DB% < "%DIR%\ticket.sql"
-%MYSQL% %DB% < "%DIR%\resale_queue.sql"
+:: %MYSQL% %DB% < "%DIR%\resale_queue.sql"
 %MYSQL% %DB% < "%DIR%\buyer.sql"
 %MYSQL% %DB% < "%DIR%\staff.sql"
 %MYSQL% %DB% < "%DIR%\equipment.sql"
 %MYSQL% %DB% < "%DIR%\performance.sql"
 %MYSQL% %DB% < "%DIR%\artist_performance.sql"
-:: %MYSQL% %DB% < "%DIR%\review.sql"
-:: %MYSQL% %DB% < "%DIR%\criteria.sql"
+%MYSQL% %DB% < "%DIR%\criteria.sql"
+%MYSQL% %DB% < "%DIR%\review.sql"
+
 
 echo All SQL scripts executed.
 endlocal
