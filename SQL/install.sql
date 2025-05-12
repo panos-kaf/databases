@@ -139,6 +139,7 @@ CREATE TABLE `buyer` (
   `event_id` int DEFAULT NULL,
   `ticket_type_id` int DEFAULT NULL,
   `specific_ticket` int DEFAULT NULL,
+  `is_valid` int DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   CONSTRAINT `buyer_event` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -883,21 +884,22 @@ END $$
 DELIMITER ;
 
 DELIMITER $$
+
 DROP TRIGGER IF EXISTS after_insert_buyer;
 CREATE TRIGGER after_insert_buyer
 AFTER INSERT ON buyer
 FOR EACH ROW
 BEGIN
-    DECLARE available_ticket_id INT;
-    DECLARE resale_ticket_id INT;
+    DECLARE available_ticket_id INT DEFAULT NULL;
+    DECLARE resale_ticket_id INT DEFAULT NULL;
     DECLARE random_purchase_type INT;
 
     -- Επιλογή τυχαίου purchase_type (1, 2 ή 3)
     SET random_purchase_type = FLOOR(1 + RAND() * 3);
 
-    
+    -- ======================
     -- Έλεγχος αν υπάρχει specific_ticket
-    
+    -- ======================
     IF NEW.specific_ticket IS NOT NULL THEN
         -- Ψάχνουμε το συγκεκριμένο ticket
         SELECT id INTO available_ticket_id
@@ -915,30 +917,9 @@ BEGIN
         END IF;
     END IF;
 
-    -- Αν βρέθηκε είτε στο ticket είτε στο resale_queue
-    IF available_ticket_id IS NOT NULL OR resale_ticket_id IS NOT NULL THEN
-        SET available_ticket_id = IFNULL(available_ticket_id, resale_ticket_id);
-
-        -- Κάνουμε το update στο ticket
-        UPDATE ticket
-        SET visitor_id = NEW.visitor_id,
-            purchase_type_id = random_purchase_type,
-            purchase_date = NOW()
-        WHERE id = available_ticket_id;
-
-        -- Καταγραφή στο buyer_log με method 'direct' ή 'resale'
-        -- INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method)
-        -- VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), IF(resale_ticket_id IS NULL, 'direct', 'resale'));
-
-        -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
-        DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
-
-        -- Διαγραφή του αγοραστή από τον πίνακα buyer
-        DELETE FROM buyer WHERE id = NEW.id;
-    ELSE
-        
+    -- Μόνο αν το event_id δεν είναι NULL προχωράμε στην αναζήτηση
+    IF NEW.event_id IS NOT NULL AND (available_ticket_id IS NULL AND resale_ticket_id IS NULL) THEN
         -- Αν δεν βρεθεί με specific_ticket, ψάχνουμε με event_id και ticket_type
-       
         SELECT id INTO available_ticket_id
         FROM ticket
         WHERE event_id = NEW.event_id
@@ -955,33 +936,32 @@ BEGIN
               AND t.ticket_type_id = NEW.ticket_type_id
             LIMIT 1;
         END IF;
+    END IF;
 
-        -- Αν βρεθεί εισιτήριο είτε στο ticket είτε στο resale_queue
-        IF available_ticket_id IS NOT NULL OR resale_ticket_id IS NOT NULL THEN
-            SET available_ticket_id = IFNULL(available_ticket_id, resale_ticket_id);
+    -- Αν βρεθεί εισιτήριο είτε στο ticket είτε στο resale_queue
+    IF available_ticket_id IS NOT NULL OR resale_ticket_id IS NOT NULL THEN
+        SET available_ticket_id = IFNULL(available_ticket_id, resale_ticket_id);
 
-            -- Κάνουμε το update στο ticket
-            UPDATE ticket
-            SET visitor_id = NEW.visitor_id,
-                purchase_type_id = random_purchase_type,
-                purchase_date = NOW()
-            WHERE id = available_ticket_id;
+        -- Κάνουμε το update στο ticket
+        UPDATE ticket
+        SET visitor_id = NEW.visitor_id,
+            purchase_type_id = random_purchase_type,
+            purchase_date = NOW()
+        WHERE id = available_ticket_id;
 
-            -- Καταγραφή στο buyer_log
-           -- INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method)
-           -- VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(), 'resale');
+        -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
+        DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
-            -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
-            DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
-
-            -- Διαγραφή του αγοραστή από τον πίνακα buyer
-            DELETE FROM buyer WHERE id = NEW.id;
-        END IF;
+        -- Μαρκάρουμε τον αγοραστή ως μη έγκυρο αντί να τον διαγράψουμε
+        UPDATE buyer 
+        SET is_valid = 0
+        WHERE id = NEW.id;
     END IF;
 
 END $$
 
 DELIMITER ;
+
 
 
 -- --------------------------------------- END OF TRIGGERS -------------------------------------------------------
