@@ -3,7 +3,7 @@ import csv
 from datetime import datetime, timedelta
 
 # Configuration
-total_visitors = 89000
+total_visitors = 85000
 events = list(range(1, 181))
 tickets_per_event = total_visitors // len(events)  # 500 per event
 
@@ -97,7 +97,7 @@ for event_id in events:
 # ----------------------
 # Step 2: Generate 1,000 extra tickets for 50 visitors
 # ----------------------
-while len(csv_rows) < 90000:
+while len(csv_rows) < 86000:
     visitor_id = random.choice(extra_visitors)
     event_id = random.choice(events)
     generate_ticket(visitor_id, event_id, used_pairs)

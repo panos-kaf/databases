@@ -30,7 +30,7 @@ values = []
 for visitor_id, event_ids in to_review.items():
     for event_id in event_ids:
 
-        for performance_id in range(180 * event_id, (180 * event_id) + 5):
+        for performance_id in range(5 * (event_id - 1) + 1, (5 * (event_id - 1) + 6)):
 
             if random.random() < 0.75:
                 for criteria_id in range(1, 6):
