@@ -3,7 +3,7 @@ import csv
 from datetime import datetime, timedelta
 
 # Configuration
-total_visitors = 90000
+total_visitors = 89000
 events = list(range(1, 181))
 tickets_per_event = total_visitors // len(events)  # 500 per event
 
