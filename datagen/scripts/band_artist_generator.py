@@ -1,42 +1,42 @@
 import random
 
-artist_ids = list(range(1, 201))
-random.shuffle(artist_ids)
-
+TOTAL_ARTISTS = 200
 band_ids = list(range(1, 21))
 band_members = []
-assigned_artists = set()
-artist_index = 0
 
+artist_id = 1  # start from artist 1
+
+# Generate bands
 for band_id in band_ids:
     band_size = random.randint(2, 5)
 
-    # Ensure we don't run out of artists
-    remaining = len(artist_ids) - artist_index
-    if remaining < band_size:
-        band_size = remaining
+    # Avoid exceeding total number of artists
+    if artist_id + band_size - 1 > TOTAL_ARTISTS:
+        band_size = TOTAL_ARTISTS - artist_id + 1
 
-    # Assign artists to this band
-    members = artist_ids[artist_index:artist_index + band_size]
-    for artist_id in members:
-        band_members.append((band_id, artist_id))
-        assigned_artists.add(artist_id)
+    members = list(range(artist_id, artist_id + band_size))
+    for aid in members:
+        band_members.append((band_id, aid))
 
-    artist_index += band_size
+    artist_id += band_size
 
-# Optional: Some artists stay unassigned (no band)
+    if artist_id > TOTAL_ARTISTS:
+        break
 
-# Sort by band_id
-band_members.sort()
+# Remaining artists (not assigned to any band)
+solo_artist_ids = list(range(artist_id, TOTAL_ARTISTS + 1))
 
-# Prepare SQL
-sql_lines = ["INSERT INTO `band_artist` (`band_id`, `artist_id`) VALUES"]
-sql_lines += [f"({band_id}, {artist_id})" for band_id, artist_id in band_members]
+# Prepare band SQL
+band_sql_lines = ["INSERT INTO `band_artist` (`band_id`, `artist_id`) VALUES"]
+band_sql_lines += [f"({band_id}, {artist_id})" for band_id, artist_id in band_members]
+band_sql_output = ",\n".join(band_sql_lines) + ";"
 
-sql_output = ",\n".join(sql_lines) + ";"
+# Prepare solo artist SQL (optional, depends on your schema)
+# For example, you might store them in a separate table or leave them out
 
 # Write to file
 with open("band_artist.sql", "w") as f:
-    f.write(sql_output)
+    f.write(band_sql_output)
 
-print("Generated band_artist.sql with bands of random size 2–5, sorted by band_id.")
+print(f"Generated band_artist.sql with {len(band_members)} band memberships.")
+print(f"{len(solo_artist_ids)} artists remain as solo artists (not in any band).")
