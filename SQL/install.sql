@@ -478,7 +478,7 @@ CREATE TABLE `ticket` (
   KEY `fk_ticket_visitor_id_idx` (`visitor_id`),
   CONSTRAINT `fk_purchase_type_id` FOREIGN KEY (`purchase_type_id`) REFERENCES `purchase_type` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_ticket_type_id` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_type` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ticket_event_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -574,6 +574,7 @@ CREATE TABLE `buyer_log` (
     `purchase_type_id` INT NOT NULL,
     `purchase_date` DATETIME NOT NULL,
     `purchase_method` VARCHAR(20) NOT NULL, -- 'direct' ή 'resale'
+    `is_valid` int,
     CONSTRAINT `fk_buyer_log_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `ticket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `fk_buyer_log_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -870,7 +871,8 @@ DELIMITER ;
 DELIMITER $$
 DROP TRIGGER IF EXISTS after_update_ticket_for_sale;
 CREATE TRIGGER after_update_ticket_for_sale
-AFTER UPDATE ON ticket
+BEFORE
+ UPDATE ON ticket
 FOR EACH ROW
 BEGIN
     -- Ελέγχουμε αν το πεδίο for_sale ενημερώθηκε από 0 σε 1
@@ -885,9 +887,9 @@ DELIMITER ;
 
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS after_insert_buyer;
-CREATE TRIGGER after_insert_buyer
-AFTER INSERT ON buyer
+DROP TRIGGER IF EXISTS before_insert_buyer;
+CREATE TRIGGER before_insert_buyer
+BEFORE INSERT ON buyer
 FOR EACH ROW
 BEGIN
     DECLARE available_ticket_id INT DEFAULT NULL;
@@ -897,9 +899,8 @@ BEGIN
     -- Επιλογή τυχαίου purchase_type (1, 2 ή 3)
     SET random_purchase_type = FLOOR(1 + RAND() * 3);
 
-    -- ======================
     -- Έλεγχος αν υπάρχει specific_ticket
-    -- ======================
+ 
     IF NEW.specific_ticket IS NOT NULL THEN
         -- Ψάχνουμε το συγκεκριμένο ticket
         SELECT id INTO available_ticket_id
@@ -952,10 +953,12 @@ BEGIN
         -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
         DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
-        -- Μαρκάρουμε τον αγοραστή ως μη έγκυρο αντί να τον διαγράψουμε
-        UPDATE buyer 
-        SET is_valid = 0
-        WHERE id = NEW.id;
+        -- Μαρκάρουμε τον αγοραστή ως μη έγκυρο
+        SET NEW.is_valid = 0;
+        
+        INSERT INTO buyer_log (ticket_id, visitor_id,event_id,purchase_type_id, purchase_date, purchase_method,is_valid)
+        VALUES (available_ticket_id,NEW.visitor_id,NEW.event_id,random_purchase_type,NOW(),
+        IF(resale_ticket_id IS NOT NULL, 'resale', 'direct'),0);
     END IF;
 
 END $$
