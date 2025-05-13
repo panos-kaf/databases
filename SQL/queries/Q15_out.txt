@@ -1,0 +1,10 @@
++----------------+------------------+-------------+
+| visitor_name   | artist_name      | total_score |
++----------------+------------------+-------------+
+| Angel Crawford | Kathleen Barr    |          93 |
+| Brandi Allison | Katelyn Freeman  |          87 |
+| Kristin Reyes  | Dustin Lynch     |          78 |
+| Melissa Cantu  | Charles Harrison |          78 |
+| Cheryl Willis  | Melissa Peck     |          77 |
++----------------+------------------+-------------+
+5 rows in set (4.07 sec)

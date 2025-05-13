@@ -10,7 +10,6 @@ WITH RevenueCTE AS (
     JOIN festival ON event.festival_id = festival.id
     GROUP BY festival.year, purchase_type.type
 )
-
 SELECT 
     Festival_Year,
     SUM(CASE WHEN Payment_Type = 'Bank Transfer' THEN Total_Revenue ELSE 0 END) AS Bank_Transfer_Earnings,
