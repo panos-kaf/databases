@@ -1,34 +1,59 @@
-declare number_one int;
+SET @number_one = 10;
 
+WITH cte_festival_staff AS (
+    SELECT 
+        event.day,
+        DATE_ADD(festival.starting_date, INTERVAL (event.day - 1) DAY) AS festival_date,
+        role.description,
+        COUNT(staff.id) AS staff_count,
+        MAX(building.capacity) AS building_capacity,
+        GROUP_CONCAT(DISTINCT building.name ORDER BY building.name SEPARATOR ', ') AS buildings,
+        CASE 
+            WHEN role.description = 'Security' THEN CEIL((MAX(building.capacity) * 0.05))
+            WHEN role.description = 'Guide' THEN CEIL((MAX(building.capacity) * 0.02))
+            WHEN role.description = 'Technician' THEN @number_one
+            ELSE 0
+        END AS minimum_required
+    FROM 
+        festival
+    JOIN 
+        event ON festival.id = event.festival_id
+    JOIN 
+        building ON event.building_id = building.id
+    JOIN 
+        staff ON building.id = staff.building_id
+    JOIN 
+        role ON staff.role = role.id
+    WHERE 
+        festival.year = 2019 
+        AND event.day BETWEEN 1 AND (festival.duration + 1)
+    GROUP BY 
+        event.day,
+        role.description,
+        DATE_ADD(festival.starting_date, INTERVAL (event.day - 1) DAY)
+),
+cte_check_staff AS (
+    SELECT
+        cte_festival_staff.*,
+        CASE 
+            WHEN cte_festival_staff.staff_count >= cte_festival_staff.minimum_required THEN 'OK'
+            ELSE 'INSUFFICIENT'
+        END AS status
+    FROM 
+        cte_festival_staff
+)
 SELECT 
-    f.year AS festival_year,
-    f.starting_date,
-    f.ending_date,
-    e.day AS festival_day_number,
-    DATE_ADD(f.starting_date, INTERVAL (e.day - 1) DAY) AS calendar_date,
-    r.description AS role_category,
-    COUNT(s.id) AS staff_count,
-    GROUP_CONCAT(DISTINCT b.name ORDER BY b.name SEPARATOR ', ') AS buildings_assigned
+    day,
+    festival_date,
+    description,
+    staff_count,
+    building_capacity,
+    minimum_required,
+    status,
+    buildings
 FROM 
-    festival f
-JOIN 
-    event e ON f.id = e.festival_id
-JOIN 
-    building b ON e.building_id = b.id
-JOIN 
-    staff s ON b.id = s.building_id
-JOIN 
-    role r ON s.role = r.id
-WHERE 
-    f.year = 2020 
-    AND e.day BETWEEN 1 AND (f.duration + 1)  -- Only official festival days
-GROUP BY 
-    f.year,
-    f.starting_date,
-    f.ending_date,
-    e.day,
-    calendar_date,
-    r.description
+    cte_check_staff
 ORDER BY 
-    e.day,
-    r.description;
+    day,
+    description;
+
