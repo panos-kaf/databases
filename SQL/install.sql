@@ -889,12 +889,14 @@ BEGIN
         -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
         DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
-        -- Μαρκάρουμε τον αγοραστή ως μη έγκυρο
-        SET NEW.is_valid = 0;
-        
-        INSERT INTO buyer_log (ticket_id, visitor_id,event_id,purchase_type_id, purchase_date, purchase_method,is_valid)
+		INSERT INTO buyer_log (ticket_id, visitor_id,event_id,purchase_type_id, purchase_date, purchase_method,is_valid)
         VALUES (available_ticket_id,NEW.visitor_id,NEW.event_id,random_purchase_type,NOW(),
         IF(resale_ticket_id IS NOT NULL, 'resale', 'direct'),0);
+
+        -- Μαρκάρουμε το event ως μη έγκυρο
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Conflict detected: Another event is scheduled in the same building at this time.';
+        
     END IF;
 
 END $$
