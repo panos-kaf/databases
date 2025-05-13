@@ -818,7 +818,7 @@ DELIMITER $$
 
 DROP TRIGGER IF EXISTS before_insert_buyer;
 CREATE TRIGGER before_insert_buyer
-AFTER INSERT ON buyer
+BEFORE INSERT ON buyer
 FOR EACH ROW
 BEGIN
 
