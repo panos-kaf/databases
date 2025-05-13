@@ -816,26 +816,22 @@ DELIMITER ;
 -- ------------------------ Trigger για αγορά ticket απο buyer -------------------------------------------------
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS before_insert_buyer;
+DROP TRIGGER IF EXISTS before_insert_buyer $$
 CREATE TRIGGER before_insert_buyer
 BEFORE INSERT ON buyer
 FOR EACH ROW
 BEGIN
-
 	DECLARE available_ticket_id INT DEFAULT NULL;
 	DECLARE resale_ticket_id INT DEFAULT NULL;
 	DECLARE random_purchase_type INT;
-    
-    -- Έλεγχος αν ο buyer έχει is_valid = 0
-    IF NEW.is_valid = 1 THEN
-        -- Αν δεν είναι έγκυρος, κάνουμε απλά LEAVE και τερματίζουμε το trigger
 
+	-- Ελέγχουμε αν ο buyer είναι έγκυρος (is_valid = 1)
+	IF NEW.is_valid = 1 THEN
 		-- Επιλογή τυχαίου purchase_type (1, 2 ή 3)
 		SET random_purchase_type = FLOOR(1 + RAND() * 3);
 
-		-- Έλεγχος αν υπάρχει specific_ticket
+		-- Αν έχει επιλεγεί συγκεκριμένο εισιτήριο
 		IF NEW.specific_ticket IS NOT NULL THEN
-			-- Ψάχνουμε το συγκεκριμένο ticket
 			SELECT id INTO available_ticket_id
 			FROM ticket
 			WHERE id = NEW.specific_ticket
@@ -851,9 +847,8 @@ BEGIN
 			END IF;
 		END IF;
 
-		-- Μόνο αν το event_id δεν είναι NULL προχωράμε στην αναζήτηση
+		-- Αν δεν βρέθηκε specific_ticket και υπάρχει event_id
 		IF NEW.event_id IS NOT NULL AND (available_ticket_id IS NULL AND resale_ticket_id IS NULL) THEN
-			-- Αν δεν βρεθεί με specific_ticket, ψάχνουμε με event_id και ticket_type
 			SELECT id INTO available_ticket_id
 			FROM ticket
 			WHERE event_id = NEW.event_id
@@ -861,7 +856,6 @@ BEGIN
 			  AND visitor_id IS NULL
 			LIMIT 1;
 
-			-- Αν δεν βρεθεί στο ticket, το ψάχνουμε στο resale_queue
 			IF available_ticket_id IS NULL THEN
 				SELECT ticket_id INTO resale_ticket_id
 				FROM resale_queue rq
@@ -872,31 +866,32 @@ BEGIN
 			END IF;
 		END IF;
 
-		-- Αν βρεθεί εισιτήριο είτε στο ticket είτε στο resale_queue
+		-- Αν βρεθεί εισιτήριο
 		IF available_ticket_id IS NOT NULL OR resale_ticket_id IS NOT NULL THEN
-			SET available_ticket_id = IFNULL(available_ticket_id, resale_ticket_id);
+			IF available_ticket_id IS NULL THEN
+				SET available_ticket_id = resale_ticket_id;
+			END IF;
 
-			-- Κάνουμε το update στο ticket
+			-- Ενημέρωση εισιτηρίου
 			UPDATE ticket
 			SET visitor_id = NEW.visitor_id,
 				purchase_type_id = random_purchase_type,
 				purchase_date = NOW()
 			WHERE id = available_ticket_id;
 
-			-- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
+			-- Διαγραφή από resale_queue αν υπάρχει
 			DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
+			-- Καταγραφή στο log
 			INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method, is_valid)
 			VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(),
-			IF(resale_ticket_id IS NOT NULL, 'resale', 'direct'), 0);
+			IF(resale_ticket_id IS NOT NULL AND available_ticket_id = resale_ticket_id, 'resale', 'direct'), 0);
 
-			UPDATE buyer
-			SET is_valid = 0;
+			-- Απενεργοποίηση is_valid στο νέο record
+			SET NEW.is_valid = 0;
 		END IF;
-
-    END IF;
+	END IF;
 END $$
-
 DELIMITER ;
 
 
