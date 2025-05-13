@@ -28,14 +28,19 @@ def random_ean13():
     other_digits = ''.join(str(random.randint(0, 9)) for _ in range(12))
     return first_digit + other_digits
 
-def generate_ticket(visitor_id, event_id, used_pairs):
+def generate_ticket(visitor_id, event_id, used_pairs, vip_override=False):
     if (visitor_id, event_id) in used_pairs:
         return None  # Skip duplicates
 
     used_pairs.add((visitor_id, event_id))
 
     cost = random.randint(10, 20) * 0.5
-    ticket_type_id = random.choices([1, 2, 3], weights=[0.45, 0.1, 0.45])[0]
+
+    if vip_override:
+        ticket_type_id = 2  # VIP
+    else:
+        ticket_type_id = random.choice([1, 3])  # Non-VIP only if not overridden
+
     final_cost = 2 * cost if ticket_type_id == 2 else cost
 
     used = random.randint(0, 1)
@@ -73,20 +78,26 @@ def generate_ticket(visitor_id, event_id, used_pairs):
     return True
 
 # ----------------------
-# Step 1: Generate 90,000 base tickets
+# Step 1: Generate 90,000 base tickets (including 40 VIPs per event)
 # ----------------------
 used_pairs = set()
 visitor_id_counter = 1
 
 for event_id in events:
-    for _ in range(tickets_per_event):
-        generate_ticket(visitor_id_counter, event_id, used_pairs)
+    vip_visitor_ids = list(range(visitor_id_counter, visitor_id_counter + 40))
+    for vip_id in vip_visitor_ids:
+        generate_ticket(vip_id, event_id, used_pairs, vip_override=True)
+
+    for _ in range(tickets_per_event - 40):
+        generate_ticket(visitor_id_counter, event_id, used_pairs, vip_override=False)
         visitor_id_counter += 1
+
+    visitor_id_counter += 40  # account for VIPs already generated
 
 # ----------------------
 # Step 2: Generate 1,000 extra tickets for 50 visitors
 # ----------------------
-while len(csv_rows) < 91000:
+while len(csv_rows) < 90000:
     visitor_id = random.choice(extra_visitors)
     event_id = random.choice(events)
     generate_ticket(visitor_id, event_id, used_pairs)
