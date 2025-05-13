@@ -38,6 +38,7 @@ set "MYSQL=mysql -u root -proot"
 %MYSQL% %DB% < "%DIR%\artist_performance.sql"
 %MYSQL% %DB% < "%DIR%\criteria.sql"
 %MYSQL% %DB% < "%DIR%\review.sql"
+%MYSQL% %DB% < "%DIR%\more_reviews.sql"
 
 
 echo All SQL scripts executed.
