@@ -1,4 +1,4 @@
-INSERT INTO `band_artist` (`band_id`, `artist_id`) VALUES,
+INSERT INTO `band_artist` (`band_id`, `artist_id`) VALUES
 (1, 1),
 (1, 2),
 (1, 3),
