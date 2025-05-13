@@ -478,8 +478,8 @@ CREATE TABLE `ticket` (
   KEY `fk_ticket_visitor_id_idx` (`visitor_id`),
   CONSTRAINT `fk_purchase_type_id` FOREIGN KEY (`purchase_type_id`) REFERENCES `purchase_type` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_ticket_type_id` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_type` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_ticket_event_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_ticket_visitor_id` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_ticket_event_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -621,7 +621,8 @@ BEGIN
         VALUES (NEW.event_id, NEW.visitor_id, 'Cannot add more VIP tickets. Capacity limit exceeded.');
         
         -- Παράκαμψη του insert
-        SET NEW.id = NULL;
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot add more VIP tickets. Capacity limit exceeded.';
     END IF;
 END $$
 
@@ -631,37 +632,7 @@ DELIMITER ;
 
 DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------
-DELIMITER $$
 
-DROP TRIGGER IF EXISTS check_single_ticket_per_event;
-CREATE TRIGGER check_single_ticket_per_event
-BEFORE INSERT ON ticket
-FOR EACH ROW
-BEGIN
-    DECLARE ticket_count INT;
-
-    -- Υπολογίζουμε πόσα εισιτήρια έχει ο συγκεκριμένος επισκέπτης για το συγκεκριμένο event
-    SELECT COUNT(*) INTO ticket_count
-    FROM ticket
-    WHERE visitor_id = NEW.visitor_id AND event_id = NEW.event_id;
-
-    -- Αν βρεθεί ήδη εισιτήριο για το ίδιο event
-    IF ticket_count > 0 THEN
-        -- Καταγραφή στο log
-        INSERT INTO insert_logs (message, timestamp)
-        VALUES (
-            CONCAT('Visitor with ID ', NEW.visitor_id, ' already owns a ticket for event with ID ', NEW.event_id),
-            NOW()
-        );
-
-        -- Παράκαμψη του insert
-        SET NEW.id = NULL;
-    END IF;
-END $$
-
-DELIMITER ;
-
--- -----------------------------------------------------------------------------------------------------
 DELIMITER $$
 DROP TRIGGER IF EXISTS check_consecutive_festival_years;
 CREATE TRIGGER check_consecutive_festival_years
@@ -734,42 +705,6 @@ END $$
 DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------------
 -- -------------------------------- Capacity check per ticket insertion ---------------------------------------
-DELIMITER $$
-
-DROP TRIGGER IF EXISTS check_building_capacity_before;
-CREATE TRIGGER check_building_capacity_before
-BEFORE INSERT ON ticket
-FOR EACH ROW
-BEGIN
-    DECLARE current_tickets INT;
-    DECLARE building_capacity INT;
-
-    -- Βρίσκουμε τη χωρητικότητα του κτιρίου που αντιστοιχεί στο event
-    SELECT b.capacity INTO building_capacity
-    FROM event e
-    JOIN building b ON e.building_id = b.id
-    WHERE e.id = NEW.event_id;
-
-    -- Βρίσκουμε πόσα εισιτήρια έχουν ήδη εκδοθεί για το συγκεκριμένο event
-    SELECT COUNT(*) INTO current_tickets
-    FROM ticket
-    WHERE event_id = NEW.event_id;
-
-    -- Αν τα ήδη εκδοθέντα εισιτήρια + το νέο ξεπερνούν τη χωρητικότητα
-    IF (current_tickets + 1) > building_capacity THEN
-        -- Καταγραφή στο log για debugging
-        INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
-        VALUES (NEW.event_id, NEW.visitor_id, 'Building capacity exceeded. Ticket was not inserted.');
-
-        -- Παράκαμψη της εισαγωγής
-        SET NEW.id = NULL;
-    END IF;
-END $$
-
-DELIMITER ;
-
-
--- -----------------------------------------------------------------------------------------------------------
 
 DELIMITER $$
 
@@ -798,20 +733,20 @@ BEGIN
         INSERT INTO ticket_capacity_log (event_id, visitor_id, message)
         VALUES (NEW.event_id, NEW.visitor_id, 'Building capacity exceeded. Ticket insertion skipped.');
 
-        -- Παράκαμψη του insert
-        SET NEW.id = NULL;
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Building capacity exceeded. Ticket was not inserted.';
     END IF;
 END $$
 
 DELIMITER ;
 
 
--- --------------------------------------------------------------------------------------------------------------
+-- ---------------------------- Trigger για μοναδικό event κάθε φορά ανά κτήριο ----------------------------------------
 
 DELIMITER $$
 
 DROP TRIGGER IF EXISTS check_event_unique_in_building;
-CREATE TRIGGER check_event_unique_in_building
+BEFORE TRIGGER check_event_unique_in_building
 BEFORE INSERT ON performance
 FOR EACH ROW
 BEGIN
@@ -841,8 +776,9 @@ BEGIN
             'Conflict detected: Another event is scheduled in the same building at this time.'
         );
 
-        -- Παράκαμψη του insert
-        SET NEW.id = NULL;
+        -- Μαρκάρουμε το event ως μη έγκυρο
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Conflict detected: Another event is scheduled in the same building at this time.';
     END IF;
 END $$
 
@@ -884,7 +820,7 @@ BEGIN
 END $$
 
 DELIMITER ;
-
+-- ------------------------ Trigger για αγορά ticket απο buyer -------------------------------------------------
 DELIMITER $$
 
 DROP TRIGGER IF EXISTS before_insert_buyer;
