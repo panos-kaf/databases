@@ -582,9 +582,6 @@ CREATE TABLE `buyer_log` (
 
 -- -------------------------------------  END OF LOG TABLES -----------------------------------------------
 -- --------------------------- TRIGGERS -------------------------------------------------------------------
-DELIMITER $$
-
-DELIMITER $$
 
 DELIMITER $$
 
@@ -625,10 +622,6 @@ BEGIN
         SET MESSAGE_TEXT = 'Cannot add more VIP tickets. Capacity limit exceeded.';
     END IF;
 END $$
-
-DELIMITER ;
-
-
 
 DELIMITER ;
 -- -----------------------------------------------------------------------------------------------------------
@@ -746,7 +739,7 @@ DELIMITER ;
 DELIMITER $$
 
 DROP TRIGGER IF EXISTS check_event_unique_in_building;
-BEFORE TRIGGER check_event_unique_in_building
+CREATE TRIGGER check_event_unique_in_building
 BEFORE INSERT ON performance
 FOR EACH ROW
 BEGIN
@@ -823,11 +816,19 @@ DELIMITER ;
 -- ------------------------ Trigger για αγορά ticket απο buyer -------------------------------------------------
 DELIMITER $$
 
+DELIMITER $$
+
 DROP TRIGGER IF EXISTS before_insert_buyer;
 CREATE TRIGGER before_insert_buyer
-BEFORE INSERT ON buyer
+AFTER INSERT ON buyer
 FOR EACH ROW
 BEGIN
+    -- Έλεγχος αν ο buyer έχει is_valid = 0
+    IF NEW.is_valid = 0 THEN
+        -- Αν δεν είναι έγκυρος, κάνουμε απλά LEAVE και τερματίζουμε το trigger
+        LEAVE;
+    END IF;
+
     DECLARE available_ticket_id INT DEFAULT NULL;
     DECLARE resale_ticket_id INT DEFAULT NULL;
     DECLARE random_purchase_type INT;
@@ -836,7 +837,6 @@ BEGIN
     SET random_purchase_type = FLOOR(1 + RAND() * 3);
 
     -- Έλεγχος αν υπάρχει specific_ticket
- 
     IF NEW.specific_ticket IS NOT NULL THEN
         -- Ψάχνουμε το συγκεκριμένο ticket
         SELECT id INTO available_ticket_id
@@ -889,19 +889,18 @@ BEGIN
         -- Διαγραφή από τον πίνακα resale_queue αν προέρχεται από εκεί
         DELETE FROM resale_queue WHERE ticket_id = available_ticket_id;
 
-		INSERT INTO buyer_log (ticket_id, visitor_id,event_id,purchase_type_id, purchase_date, purchase_method,is_valid)
-        VALUES (available_ticket_id,NEW.visitor_id,NEW.event_id,random_purchase_type,NOW(),
-        IF(resale_ticket_id IS NOT NULL, 'resale', 'direct'),0);
+        INSERT INTO buyer_log (ticket_id, visitor_id, event_id, purchase_type_id, purchase_date, purchase_method, is_valid)
+        VALUES (available_ticket_id, NEW.visitor_id, NEW.event_id, random_purchase_type, NOW(),
+        IF(resale_ticket_id IS NOT NULL, 'resale', 'direct'), 0);
 
-        -- Μαρκάρουμε το event ως μη έγκυρο
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Conflict detected: Another event is scheduled in the same building at this time.';
-        
+        UPDATE buyer
+        SET is_valid = 0;
     END IF;
 
 END $$
 
 DELIMITER ;
+
 
 
 
