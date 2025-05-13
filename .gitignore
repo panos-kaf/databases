@@ -1,1 +1,5 @@
 **/.DS_Store
+datagen/bin/
+datagen/lib/
+datagen/iclude/
+datagen/pyvenv.cfg
