@@ -1,0 +1,19 @@
++----+-------------------+------+--------------------+
+| id | name              | age  | total_performances |
++----+-------------------+------+--------------------+
+| 21 | Richard Farrell   |   25 |                  7 |
+| 11 | Zachary Gonzalez  |   24 |                  6 |
+| 44 | Monica Cantu      |   21 |                  6 |
+| 46 | Dakota Blanchard  |   20 |                  5 |
+|  5 | Mrs. Angela Jones |   23 |                  4 |
+|  9 | Leslie Shaw       |   27 |                  4 |
+| 14 | Janice Koch       |   20 |                  4 |
+| 33 | Anthony Noble     |   21 |                  4 |
+| 41 | James Hodges      |   29 |                  4 |
+| 15 | Jonathan Lynch    |   25 |                  3 |
+| 24 | Jose Hobbs        |   29 |                  3 |
+| 13 | Joshua Smith      |   28 |                  2 |
+| 26 | Laura Coleman MD  |   29 |                  2 |
+| 50 | Stacy Anderson    |   26 |                  2 |
++----+-------------------+------+--------------------+
+14 rows in set (0.00 sec)

@@ -1,0 +1,198 @@
++-----+----------------------+-------------------+-----------------+---------------------------------------------------------------------------+
+| id  | name                 | stage_name        | continent_count | continents                                                                |
++-----+----------------------+-------------------+-----------------+---------------------------------------------------------------------------+
+|  79 | Katie Carlson        | maureenjones      |               7 | Africa, Antarctica, Asia, Australia, Europe, North America, South America |
+| 129 | Veronica Phillips    | keithle           |               7 | Africa, Antarctica, Asia, Australia, Europe, North America, South America |
+|   8 | Linda Nunez          | blackwellstephen  |               6 | Africa, Antarctica, Asia, Australia, Europe, North America                |
+|  10 | Patricia Bush        | warrendan         |               6 | Africa, Antarctica, Asia, Australia, Europe, South America                |
+|  25 | Miguel Zuniga        | leetimothy        |               6 | Africa, Asia, Australia, Europe, North America, South America             |
+|  26 | Harold Salinas       | wilsonsandra      |               6 | Antarctica, Asia, Australia, Europe, North America, South America         |
+|  38 | Larry Klein          | amanda40          |               6 | Antarctica, Asia, Australia, Europe, North America, South America         |
+|  42 | Katherine Miller     | fergusonmelissa   |               6 | Africa, Antarctica, Asia, Australia, Europe, North America                |
+|  61 | Dylan Robles         | opittman          |               6 | Antarctica, Asia, Australia, Europe, North America, South America         |
+|  71 | Charles Byrd         | vvaldez           |               6 | Africa, Antarctica, Asia, Australia, Europe, South America                |
+|  81 | Christopher Scott    | kimberly78        |               6 | Africa, Antarctica, Asia, Europe, North America, South America            |
+|  85 | Robert Bruce         | christopher47     |               6 | Africa, Antarctica, Asia, Europe, North America, South America            |
+|  86 | Linda Carlson        | andreapierce      |               6 | Africa, Antarctica, Asia, Europe, North America, South America            |
+|  93 | Daniel Turner        | halldouglas       |               6 | Africa, Asia, Australia, Europe, North America, South America             |
+|  94 | Jennifer Daniel      | drobertson        |               6 | Africa, Antarctica, Asia, Australia, Europe, North America                |
+| 122 | Todd Ramsey          | krussell          |               6 | Africa, Antarctica, Asia, Europe, North America, South America            |
+| 125 | Anthony Johnson      | jennifer95        |               6 | Africa, Antarctica, Asia, Australia, Europe, North America                |
+| 152 | Shirley Brown        | huffkayla         |               6 | Africa, Antarctica, Asia, Australia, Europe, North America                |
+| 168 | Ian Holland          | alejandro35       |               6 | Africa, Antarctica, Asia, Australia, Europe, South America                |
+| 170 | Danielle Marshall    | jessicaharrison   |               6 | Antarctica, Asia, Australia, Europe, North America, South America         |
+| 196 | Mr. David Michael MD | xcastro           |               6 | Africa, Antarctica, Asia, Europe, North America, South America            |
+|   3 | Megan Webb           | brooksscott       |               5 | Africa, Asia, Australia, Europe, North America                            |
+|   4 | John King            | qjones            |               5 | Africa, Antarctica, Asia, Europe, South America                           |
+|   5 | Ian Ramirez          | andrewsmegan      |               5 | Africa, Antarctica, Asia, North America, South America                    |
+|   7 | Deborah Perez        | sanchezgloria     |               5 | Antarctica, Asia, Australia, North America, South America                 |
+|  12 | Christopher Brown    | jeffreyhayes      |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+|  17 | Thomas Baldwin       | earl71            |               5 | Antarctica, Asia, Europe, North America, South America                    |
+|  23 | Darren Keith         | curtispamela      |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+|  27 | Tracy Odom           | gvillegas         |               5 | Africa, Antarctica, Australia, Europe, North America                      |
+|  30 | Christine Parrish    | elizabethwilliams |               5 | Africa, Antarctica, Asia, Europe, South America                           |
+|  33 | Jeffery Oliver       | ingramsamuel      |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+|  41 | Julie Howard         | andrewsantiago    |               5 | Antarctica, Asia, Europe, North America, South America                    |
+|  45 | Heather Williams     | jeffreykirby      |               5 | Africa, Antarctica, Asia, North America, South America                    |
+|  53 | Lori Reed            | richard12         |               5 | Antarctica, Asia, Australia, Europe, South America                        |
+|  54 | Miguel Hines         | margaret08        |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+|  55 | Emma Scott           | dlucas            |               5 | Antarctica, Asia, Australia, North America, South America                 |
+|  59 | Christopher Stewart  | hunterpaige       |               5 | Africa, Antarctica, Asia, North America, South America                    |
+|  63 | Katelyn Freeman      | melanie51         |               5 | Africa, Antarctica, Asia, Australia, South America                        |
+|  67 | Pamela Hernandez     | heatherjackson    |               5 | Antarctica, Asia, Europe, North America, South America                    |
+|  69 | Steven Gibson        | kristenbaker      |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+|  72 | Theresa Stevens      | amy35             |               5 | Asia, Australia, Europe, North America, South America                     |
+|  73 | Caitlin Lara         | brandi46          |               5 | Antarctica, Asia, Europe, North America, South America                    |
+|  74 | Kathleen Barr        | barrlori          |               5 | Antarctica, Asia, Europe, North America, South America                    |
+|  75 | Kevin Espinoza       | sphillips         |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+|  76 | Rebecca Brown        | patrickjackson    |               5 | Africa, Antarctica, Asia, Europe, South America                           |
+|  80 | Sharon Martin        | richardharrison   |               5 | Antarctica, Asia, Europe, North America, South America                    |
+|  90 | Debra Jimenez        | umason            |               5 | Africa, Asia, Australia, Europe, South America                            |
+|  91 | James Robinson       | cruzmichael       |               5 | Antarctica, Asia, Australia, Europe, South America                        |
+|  95 | Michael Smith        | ebonysalas        |               5 | Africa, Australia, Europe, North America, South America                   |
+|  96 | Ian Miller           | jonathanmason     |               5 | Africa, Asia, Europe, North America, South America                        |
+|  99 | Andrea Baker         | robin85           |               5 | Africa, Asia, Australia, North America, South America                     |
+| 101 | Jacqueline Chandler  | chad20            |               5 | Antarctica, Asia, Australia, Europe, North America                        |
+| 103 | Jennifer Turner      | breanna66         |               5 | Africa, Asia, Europe, North America, South America                        |
+| 106 | Robert Rodriguez     | kathryn56         |               5 | Antarctica, Australia, Europe, North America, South America               |
+| 108 | Stacy Riggs          | feliciaayers      |               5 | Africa, Antarctica, Asia, Australia, Europe                               |
+| 113 | Crystal Carter       | michellecrosby    |               5 | Africa, Antarctica, Asia, Europe, South America                           |
+| 114 | Joseph Kent          | cbowman           |               5 | Asia, Australia, Europe, North America, South America                     |
+| 115 | Alicia Cox           | mwyatt            |               5 | Africa, Asia, Australia, North America, South America                     |
+| 118 | Andre Golden         | susanboyd         |               5 | Antarctica, Asia, Europe, North America, South America                    |
+| 120 | Joseph Strickland    | chasemelanie      |               5 | Asia, Australia, Europe, North America, South America                     |
+| 133 | Mark Ray             | qgalvan           |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+| 137 | Courtney Higgins     | rosswilliam       |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+| 138 | Richard Williams     | lucasloretta      |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+| 139 | Jeremy Medina        | rebeccahowe       |               5 | Antarctica, Asia, Europe, North America, South America                    |
+| 140 | Janet Lee            | davidwilliams     |               5 | Antarctica, Asia, Europe, North America, South America                    |
+| 141 | Wendy Clark          | sanderselizabeth  |               5 | Africa, Antarctica, Asia, Australia, Europe                               |
+| 147 | Edward Hardy         | william69         |               5 | Antarctica, Asia, Australia, Europe, North America                        |
+| 148 | Colin Shepherd       | lopezgrace        |               5 | Antarctica, Asia, Australia, Europe, North America                        |
+| 149 | Kathryn Stewart      | blacklaura        |               5 | Antarctica, Australia, Europe, North America, South America               |
+| 150 | Melody Powell        | robert26          |               5 | Antarctica, Asia, Europe, North America, South America                    |
+| 153 | Frances Vasquez      | hammondzachary    |               5 | Antarctica, Asia, Australia, Europe, South America                        |
+| 167 | Steven Sparks        | michellecervantes |               5 | Africa, Antarctica, Australia, North America, South America               |
+| 171 | Ashley Hawkins       | fclayton          |               5 | Antarctica, Asia, Australia, Europe, North America                        |
+| 172 | Benjamin Mccormick   | aforbes           |               5 | Africa, Asia, Australia, Europe, South America                            |
+| 173 | Leslie Burns         | jessicapierce     |               5 | Africa, Antarctica, Asia, Europe, North America                           |
+| 176 | James Cunningham     | guerradaryl       |               5 | Antarctica, Asia, Australia, North America, South America                 |
+| 177 | Ashley Perez         | aguilaredward     |               5 | Africa, Antarctica, Asia, Europe, South America                           |
+| 179 | Kenneth Nelson       | ilarson           |               5 | Africa, Asia, Australia, Europe, North America                            |
+| 181 | Christian Rodriguez  | xmartin           |               5 | Africa, Antarctica, Asia, Australia, South America                        |
+| 182 | Benjamin Hawkins     | weaverjimmy       |               5 | Africa, Antarctica, Asia, North America, South America                    |
+| 183 | Richard Cohen        | john90            |               5 | Antarctica, Asia, Australia, Europe, South America                        |
+| 184 | Amanda Lee           | ymoran            |               5 | Africa, Antarctica, Asia, North America, South America                    |
+| 185 | Anthony Nash         | ryanmcguire       |               5 | Antarctica, Asia, Europe, North America, South America                    |
+| 186 | Stephanie Thompson   | timothyburns      |               5 | Africa, Antarctica, Asia, Europe, South America                           |
+| 189 | Andrea Clark         | brandy87          |               5 | Antarctica, Australia, Europe, North America, South America               |
+| 192 | Ronald Hawkins       | gwang             |               5 | Africa, Asia, Australia, Europe, South America                            |
+| 199 | James Bentley        | richardsonanthony |               5 | Asia, Australia, Europe, North America, South America                     |
+|   1 | Thomas Bailey        | michelleanthony   |               4 | Africa, Asia, Europe, South America                                       |
+|   6 | Dustin Lynch         | chamberstracey    |               4 | Asia, Australia, Europe, South America                                    |
+|   9 | Janet Jackson        | vduncan           |               4 | Africa, Antarctica, Asia, North America                                   |
+|  13 | Kim Fletcher         | hillamanda        |               4 | Africa, Asia, Europe, South America                                       |
+|  16 | Jessica Mcdowell     | gary31            |               4 | Asia, Europe, North America, South America                                |
+|  18 | Christopher Kennedy  | rachelmiles       |               4 | Antarctica, Asia, Europe, North America                                   |
+|  19 | Diane Ramos          | bradfordnatalie   |               4 | Africa, Asia, Europe, South America                                       |
+|  20 | Carmen Robertson     | geneperry         |               4 | Antarctica, Asia, Europe, South America                                   |
+|  21 | John Hardin          | chasemark         |               4 | Antarctica, Asia, Europe, North America                                   |
+|  28 | Charles Singh        | fkramer           |               4 | Asia, Europe, North America, South America                                |
+|  31 | Joy Potts            | dawn16            |               4 | Antarctica, Asia, Europe, South America                                   |
+|  32 | Joseph Blackburn     | nicholas52        |               4 | Africa, Antarctica, North America, South America                          |
+|  34 | Charles Harrison     | joseph54          |               4 | Asia, Australia, Europe, North America                                    |
+|  36 | Dr. Donald Perry     | mariasmith        |               4 | Antarctica, Europe, North America, South America                          |
+|  37 | Fernando Mccall      | kenneth94         |               4 | Asia, Australia, Europe, North America                                    |
+|  39 | Brian Owens          | melissawhite      |               4 | Antarctica, Asia, Europe, North America                                   |
+|  40 | Kelli Johnson        | andrewperry       |               4 | Africa, Antarctica, Asia, Europe                                          |
+|  43 | Christopher Gibson   | billylivingston   |               4 | Africa, Antarctica, Europe, South America                                 |
+|  44 | Renee Mccall         | latoyacontreras   |               4 | Africa, Antarctica, Asia, Europe                                          |
+|  47 | Nathan Rodriguez     | bdavid            |               4 | Antarctica, Asia, Europe, North America                                   |
+|  48 | Shane Schultz        | mcfarlanddale     |               4 | Asia, Europe, North America, South America                                |
+|  49 | Hannah Ray           | josephkaufman     |               4 | Antarctica, Asia, Europe, North America                                   |
+|  58 | Christopher Mcmillan | elowe             |               4 | Africa, Antarctica, Europe, South America                                 |
+|  60 | Darren Franklin      | schmidteric       |               4 | Antarctica, Asia, Australia, Europe                                       |
+|  62 | Shane Mitchell       | wrightkimberly    |               4 | Africa, Asia, Australia, North America                                    |
+|  66 | Michael Gutierrez    | kylehowell        |               4 | Asia, Australia, Europe, North America                                    |
+|  68 | Patrick Curtis       | ozavala           |               4 | Africa, Antarctica, Asia, North America                                   |
+|  70 | Renee Valentine      | wstevenson        |               4 | Antarctica, Asia, Europe, South America                                   |
+|  77 | Deborah Wang         | chelseacurtis     |               4 | Asia, Europe, North America, South America                                |
+|  78 | Stephanie Wood       | millerkimberly    |               4 | Antarctica, Asia, Europe, North America                                   |
+|  84 | Kevin Dennis         | urichmond         |               4 | Antarctica, Asia, Europe, South America                                   |
+|  87 | Alexandra Young      | jennifer88        |               4 | Antarctica, Asia, Europe, South America                                   |
+|  92 | Amy Whitehead        | jmorrow           |               4 | Africa, Antarctica, Europe, South America                                 |
+|  97 | Brian Dean           | hmunoz            |               4 | Antarctica, Asia, Europe, South America                                   |
+|  98 | Michael Walker       | ricky21           |               4 | Antarctica, Asia, Australia, Europe                                       |
+| 100 | Tammy Cantu          | johnaustin        |               4 | Antarctica, Asia, Australia, South America                                |
+| 102 | Angela Gordon        | shafferrick       |               4 | Antarctica, Asia, North America, South America                            |
+| 105 | Scott Cain           | samanthawalker    |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 107 | Angela Porter        | cunninghamsteven  |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 109 | Sean Ramos           | welchricky        |               4 | Asia, Australia, Europe, South America                                    |
+| 112 | Devin Thornton       | xcampbell         |               4 | Asia, Europe, North America, South America                                |
+| 116 | Stephen Phillips     | owatson           |               4 | Africa, Antarctica, Asia, North America                                   |
+| 117 | Scott Gutierrez      | joseph36          |               4 | Antarctica, Asia, Europe, South America                                   |
+| 121 | Michelle Bryant      | acole             |               4 | Africa, Asia, Europe, South America                                       |
+| 123 | William Beck         | frederick96       |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 124 | John Adams           | johnsoncaitlin    |               4 | Asia, Europe, North America, South America                                |
+| 127 | Kim Winters          | kestrada          |               4 | Antarctica, Asia, Australia, Europe                                       |
+| 128 | Courtney Jones       | seansalinas       |               4 | Antarctica, Asia, Europe, North America                                   |
+| 130 | Brian Meadows        | brenda56          |               4 | Africa, Antarctica, Asia, South America                                   |
+| 131 | Lorraine Stephens    | matthewsjeremy    |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 132 | Jason Chandler       | jessemyers        |               4 | Antarctica, Asia, Europe, North America                                   |
+| 134 | April Roberson       | freemankristi     |               4 | Asia, Australia, Europe, South America                                    |
+| 136 | Timothy Bates        | josephmoreno      |               4 | Antarctica, Asia, Europe, North America                                   |
+| 143 | Brianna Young        | danielslori       |               4 | Antarctica, Asia, North America, South America                            |
+| 144 | Allison Brown        | kristina24        |               4 | Antarctica, Asia, Australia, Europe                                       |
+| 145 | Mark Nelson          | matthewdunn       |               4 | Africa, Asia, Europe, North America                                       |
+| 151 | Shane Gilbert        | xnguyen           |               4 | Antarctica, Asia, Australia, North America                                |
+| 154 | David Adams          | fwilson           |               4 | Antarctica, Asia, Europe, South America                                   |
+| 158 | Nathaniel Young      | juliawilkerson    |               4 | Antarctica, Asia, Europe, North America                                   |
+| 159 | Theresa Cross        | smithjacob        |               4 | Asia, Australia, North America, South America                             |
+| 161 | Cynthia Padilla      | rebekah98         |               4 | Africa, Asia, Europe, South America                                       |
+| 162 | Jonathan Gallagher   | kathryn43         |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 164 | Anthony Rice         | michellejones     |               4 | Antarctica, Asia, Australia, North America                                |
+| 166 | Matthew King         | sarah06           |               4 | Antarctica, Asia, North America, South America                            |
+| 169 | Elizabeth Martinez   | apark             |               4 | Antarctica, Australia, Europe, South America                              |
+| 174 | Maria Morris         | gandrews          |               4 | Asia, Europe, North America, South America                                |
+| 175 | Melissa Munoz        | holmesallison     |               4 | Antarctica, Asia, Europe, South America                                   |
+| 178 | Richard White        | marc75            |               4 | Antarctica, Asia, Europe, South America                                   |
+| 180 | Marie Brown          | julie78           |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 187 | Alexis Morris        | amberaguilar      |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 190 | Timothy Klein DVM    | ortizmelissa      |               4 | Africa, Antarctica, Asia, Europe                                          |
+| 193 | Aaron Perez          | tatedalton        |               4 | Antarctica, Asia, Australia, Europe                                       |
+| 197 | Brenda Stafford      | blakelopez        |               4 | Asia, Europe, North America, South America                                |
+| 198 | Jon Beltran          | gonzalezkara      |               4 | Antarctica, Asia, Europe, North America                                   |
+|  15 | Robert Wallace       | patricia77        |               3 | Antarctica, Asia, South America                                           |
+|  22 | Douglas Cox          | wilsonangela      |               3 | Antarctica, Asia, South America                                           |
+|  24 | Michael Reed         | katherinehamilton |               3 | Antarctica, Asia, North America                                           |
+|  29 | Sarah Dixon          | heather69         |               3 | Antarctica, Australia, Europe                                             |
+|  35 | Mark Yoder           | tammiemccoy       |               3 | Africa, Asia, Europe                                                      |
+|  46 | Stephanie Goodman    | elliottelizabeth  |               3 | Antarctica, Asia, Europe                                                  |
+|  50 | Tyler Jones          | lbell             |               3 | Antarctica, Asia, Europe                                                  |
+|  51 | Jessica Carter       | patriciawilson    |               3 | Antarctica, Asia, North America                                           |
+|  52 | Nicholas Cobb        | kevin04           |               3 | Antarctica, Asia, Europe                                                  |
+|  56 | Sara Lloyd           | watsonlaura       |               3 | Antarctica, Asia, North America                                           |
+|  57 | Donald Yang          | monique99         |               3 | Africa, Antarctica, Asia                                                  |
+|  64 | Diane Manning        | graysharon        |               3 | Asia, North America, South America                                        |
+|  65 | Michelle Lewis       | kristinroberts    |               3 | Asia, Europe, North America                                               |
+|  88 | Jared Bean           | tgreer            |               3 | Antarctica, Asia, North America                                           |
+|  89 | Kristi Stone         | taylordonald      |               3 | Asia, Europe, South America                                               |
+| 104 | Kevin Chandler       | scottryan         |               3 | Asia, Australia, Europe                                                   |
+| 110 | Molly Gilbert        | efoster           |               3 | Africa, Antarctica, Asia                                                  |
+| 111 | David Anderson       | michael05         |               3 | Antarctica, Australia, Europe                                             |
+| 119 | Francis Duarte       | ogriffin          |               3 | Antarctica, Asia, South America                                           |
+| 135 | Kelly Webster        | vcrawford         |               3 | Antarctica, Europe, South America                                         |
+| 142 | Dale Spencer         | milesbruce        |               3 | Australia, Europe, North America                                          |
+| 155 | Anna Garcia          | lisa14            |               3 | Africa, Asia, South America                                               |
+| 156 | Ryan Adkins          | boonerobert       |               3 | Asia, Europe, South America                                               |
+| 157 | Amanda Rose          | phillipsstephanie |               3 | Asia, Europe, North America                                               |
+| 160 | Michelle Johnson     | nforbes           |               3 | Antarctica, North America, South America                                  |
+| 163 | Michael Martin       | dhernandez        |               3 | Antarctica, Asia, Europe                                                  |
+| 165 | Veronica Fox         | eric28            |               3 | Africa, Antarctica, Asia                                                  |
+| 188 | Diana Morris         | sanderspenny      |               3 | Asia, Europe, South America                                               |
+| 191 | Michael Sanchez      | angeladillon      |               3 | Antarctica, Australia, Europe                                             |
+| 194 | Melissa Peck         | lopezthomas       |               3 | Asia, Europe, North America                                               |
+| 195 | Stephen Garcia       | wrightjacob       |               3 | Antarctica, Asia, Europe                                                  |
+| 200 | Jason Holland        | grahamamy         |               3 | Africa, Asia, South America                                               |
++-----+----------------------+-------------------+-----------------+---------------------------------------------------------------------------+
+193 rows in set (0.01 sec)

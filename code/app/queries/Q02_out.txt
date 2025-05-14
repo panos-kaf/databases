@@ -1,0 +1,20 @@
++----+------------------+-----------------+------------+--------------+
+| id | name             | stage_name      | genre_name | participated |
++----+------------------+-----------------+------------+--------------+
+| 20 | Carmen Robertson | geneperry       | electronic |            1 |
+| 36 | Dr. Donald Perry | mariasmith      | electronic |            0 |
+| 36 | Dr. Donald Perry | mariasmith      | electronic |            0 |
+| 49 | Hannah Ray       | josephkaufman   | electronic |            1 |
+|  9 | Janet Jackson    | vduncan         | electronic |            0 |
+| 16 | Jessica Mcdowell | gary31          | electronic |            1 |
+| 32 | Joseph Blackburn | nicholas52      | electronic |            1 |
+| 41 | Julie Howard     | andrewsantiago  | electronic |            1 |
+| 42 | Katherine Miller | fergusonmelissa | electronic |            0 |
+| 38 | Larry Klein      | amanda40        | electronic |            1 |
+|  3 | Megan Webb       | brooksscott     | electronic |            1 |
+| 47 | Nathan Rodriguez | bdavid          | electronic |            1 |
+| 10 | Patricia Bush    | warrendan       | electronic |            1 |
+| 44 | Renee Mccall     | latoyacontreras | electronic |            1 |
+|  1 | Thomas Bailey    | michelleanthony | electronic |            1 |
++----+------------------+-----------------+------------+--------------+
+15 rows in set (0.00 sec)

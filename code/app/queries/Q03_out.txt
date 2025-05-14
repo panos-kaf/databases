@@ -1,0 +1,17 @@
++----+------------------+---------------+------------+---------------------------------+-------------------------------------+------------------------------------+-------------------+
+| id | name             | stage_name    | birthdate  | site                            | instagram_profile                   | image_url                          | image_description |
++----+------------------+---------------+------------+---------------------------------+-------------------------------------+------------------------------------+-------------------+
+|  7 | Edward Turner    | terrythomas   | 1977-04-05 | http://raymond.info/            | https://instagram.com/terrythomas   | https://dummyimage.com/627x271     | NULL              |
+|  9 | Leslie Shaw      | omcintosh     | 1997-10-17 | https://pearson-russo.net/      | https://instagram.com/omcintosh     | https://placekitten.com/161/19     | NULL              |
+| 12 | Karen Haynes     | brandon92     | 1968-08-05 | http://moore.biz/               | https://instagram.com/brandon92     | https://dummyimage.com/846x233     | NULL              |
+| 18 | Maria Myers      | wellsmichelle | 1979-03-08 | http://houston.com/             | https://instagram.com/wellsmichelle | https://www.lorempixel.com/171/755 | NULL              |
+| 19 | Amy Rose         | ryanreynolds  | 1989-10-30 | https://www.lewis-rose.com/     | https://instagram.com/ryanreynolds  | https://www.lorempixel.com/65/107  | NULL              |
+| 23 | Linda Kline      | darrentaylor  | 1990-10-11 | http://www.mendez-anderson.com/ | https://instagram.com/darrentaylor  | https://www.lorempixel.com/801/534 | NULL              |
+| 25 | Theresa Mcbride  | yparker       | 1968-11-23 | https://anderson-kerr.info/     | https://instagram.com/yparker       | https://dummyimage.com/761x113     | NULL              |
+| 27 | Joseph Spencer   | alison46      | 1979-03-17 | http://chavez.org/              | https://instagram.com/alison46      | https://placeimg.com/717/492/any   | NULL              |
+| 34 | Leslie Acevedo   | obrock        | 1964-09-01 | http://campbell.com/            | https://instagram.com/obrock        | https://www.lorempixel.com/867/376 | NULL              |
+| 40 | Melissa Summers  | dawn61        | 1983-12-29 | http://christensen.com/         | https://instagram.com/dawn61        | https://www.lorempixel.com/852/193 | NULL              |
+| 44 | Monica Cantu     | kevin43       | 2003-11-23 | http://www.gentry.info/         | https://instagram.com/kevin43       | https://dummyimage.com/786x285     | NULL              |
+| 46 | Dakota Blanchard | crystal55     | 2004-11-23 | http://www.cabrera.org/         | https://instagram.com/crystal55     | https://placeimg.com/610/180/any   | NULL              |
++----+------------------+---------------+------------+---------------------------------+-------------------------------------+------------------------------------+-------------------+
+12 rows in set (0.00 sec)
