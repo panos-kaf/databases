@@ -406,14 +406,14 @@ CREATE TABLE `staff` (
   `last_name` varchar(45) NOT NULL,
   `birthdate` date NOT NULL,
   `experience` int NOT NULL,
-  `role` int NOT NULL,
+  `role_id` int NOT NULL,
   `building_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `experience_id_idx` (`experience`),
-  KEY `role_id_idx` (`role`),
+  KEY `role_id_idx` (`role_id`),
   CONSTRAINT `building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`),
   CONSTRAINT `experience_id` FOREIGN KEY (`experience`) REFERENCES `experience` (`id`),
-  CONSTRAINT `role_id` FOREIGN KEY (`role`) REFERENCES `role` (`id`)
+  CONSTRAINT `role_id` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -597,12 +597,12 @@ BEGIN
     -- Υπολογισμός διαθέσιμου προσωπικού
     SELECT COUNT(*) INTO security_available
     FROM staff
-    JOIN role ON staff.role = role.id
+    JOIN role ON staff.role_id = role.id
     WHERE role.description = 'Security' AND staff.building_id = NEW.building_id;
 
     SELECT COUNT(*) INTO support_available
     FROM staff
-    JOIN role ON staff.role = role.id
+    JOIN role ON staff.role_id = role.id
     WHERE role.description = 'Guide' AND staff.building_id = NEW.building_id;
 
     -- Καταγραφή στο log αν δεν επαρκεί το προσωπικό
