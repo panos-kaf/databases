@@ -36,3 +36,4 @@ JOIN
     GroupedAttendance ON VisitorAttendance.events_attended = GroupedAttendance.events_attended
 ORDER BY 
     VisitorAttendance.events_attended DESC;
+
