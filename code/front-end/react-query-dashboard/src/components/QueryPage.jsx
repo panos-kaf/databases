@@ -14,7 +14,7 @@ const QueryPage = ({ queryId }) => {
 
 
         const paddedId = queryId < 10 ? `0${queryId}` : queryId;
-        const response = await axios.get(`http://localhost:3000/q${paddedId}`);
+        const response = await axios.get(`http://localhost:3000/query/q${paddedId}`);
         
         setData(response.data);
       } catch (err) {
@@ -34,6 +34,7 @@ const QueryPage = ({ queryId }) => {
   return (
     <div>
       <h2>Αποτελέσματα για Query {queryId}</h2>
+      
       {data.length > 0 ? (
         <table border="1" style={{ width: "100%", marginTop: "20px" }}>
           <thead>

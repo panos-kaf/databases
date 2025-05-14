@@ -1,0 +1,48 @@
++---------------------+-----------------+
+| name                | events_attended |
++---------------------+-----------------+
+| Nicole Young        |              25 |
+| Tammy Malone        |              25 |
+| Shelley Allen       |              23 |
+| Jacob Walker        |              23 |
+| Debra Johnson       |              22 |
+| Stephanie Scott     |              22 |
+| Patricia Garcia     |              21 |
+| Brent Lara MD       |              21 |
+| Victoria Williamson |              21 |
+| David Dean          |              21 |
+| Elizabeth Trevino   |              19 |
+| Jacqueline Medina   |              19 |
+| Amanda Brown        |              19 |
+| Chloe Collier       |              18 |
+| Amy Lewis           |              18 |
+| Theresa Morton      |              18 |
+| Angela Taylor       |              18 |
+| Arthur Sutton       |              18 |
+| Julie Robbins       |              18 |
+| Lisa Brady          |              18 |
+| Patricia Murillo    |              18 |
+| Christina Thompson  |              18 |
+| Paul Williams       |              17 |
+| Nicole Kramer       |              17 |
+| Jessica Reynolds    |              17 |
+| Jennifer Villanueva |              17 |
+| Richard Miller      |              16 |
+| James Roberts       |              16 |
+| Eric Lowe           |              16 |
+| Michael Mclaughlin  |              16 |
+| Donald Green        |              16 |
+| Brandon Marquez     |              16 |
+| Jeremy Graham       |              15 |
+| Judy Butler         |              15 |
+| Laura Harris        |              15 |
+| Walter Jacobson DDS |              15 |
+| Katherine Wagner    |              15 |
+| Barbara Joseph      |              15 |
+| Isaac Smith         |              13 |
+| Terry Johnson       |              13 |
+| Erin Perez          |              13 |
+| Patricia Moreno     |              10 |
+| Derrick Brown       |              10 |
++---------------------+-----------------+
+43 rows in set (0.06 sec)
