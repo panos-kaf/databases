@@ -352,26 +352,6 @@ CREATE TABLE `resale_queue` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `reseller`
---
-
-DROP TABLE IF EXISTS `reseller`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `reseller` (
-  `id` int AUTO_INCREMENT,
-  `visitor_id` int NOT NULL,
-  `sale_id` int NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `visitor_id_UNIQUE` (`visitor_id`),
-  KEY `reseller_sales_idx` (`sale_id`),
-  CONSTRAINT `reseller_sales` FOREIGN KEY (`sale_id`) REFERENCES `resale_queue` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `visitor_reseller` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `review`
 --
 
@@ -579,9 +559,118 @@ CREATE TABLE `buyer_log` (
     CONSTRAINT `fk_buyer_log_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+DROP TABLE IF EXISTS `building_staff_log`;
+CREATE TABLE `building_staff_log` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `building_id` INT NOT NULL,
+    `message` VARCHAR(255) NOT NULL,
+    `logged_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_building_staff_log_building` FOREIGN KEY (`building_id`) REFERENCES `building`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 
 -- -------------------------------------  END OF LOG TABLES -----------------------------------------------
 -- --------------------------- TRIGGERS -------------------------------------------------------------------
+-- --------------------- Trigger for minimum staff req --------------------------------------------------
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS log_building_staff_coverage;
+CREATE TRIGGER log_building_staff_coverage
+AFTER INSERT ON staff
+FOR EACH ROW
+BEGIN
+    DECLARE building_capacity INT;
+    DECLARE security_required INT;
+    DECLARE support_required INT;
+    DECLARE security_available INT;
+    DECLARE support_available INT;
+
+    -- Βρίσκουμε τη χωρητικότητα του κτιρίου
+    SELECT capacity INTO building_capacity
+    FROM building
+    WHERE id = NEW.building_id;
+
+    -- Υπολογισμός απαραίτητου προσωπικού
+    SET security_required = CEIL(building_capacity * 0.05);
+    SET support_required = CEIL(building_capacity * 0.02);
+
+    -- Υπολογισμός διαθέσιμου προσωπικού
+    SELECT COUNT(*) INTO security_available
+    FROM staff
+    JOIN role ON staff.role = role.id
+    WHERE role.description = 'Security' AND staff.building_id = NEW.building_id;
+
+    SELECT COUNT(*) INTO support_available
+    FROM staff
+    JOIN role ON staff.role = role.id
+    WHERE role.description = 'Guide' AND staff.building_id = NEW.building_id;
+
+    -- Καταγραφή στο log αν δεν επαρκεί το προσωπικό
+    IF security_available < security_required THEN
+        INSERT INTO building_staff_log (building_id, message)
+        VALUES (NEW.building_id, CONCAT('Not enough Security Staff. Required: ', security_required, ', Found: ', security_available));
+    END IF;
+
+    IF support_available < support_required THEN
+        INSERT INTO building_staff_log (building_id, message)
+        VALUES (NEW.building_id, CONCAT('Not enough Support Staff. Required: ', support_required, ', Found: ', support_available));
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- ------------------------------ festival location per year ---------------------------------------------
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS check_no_consecutive_or_same_year_festivals;
+CREATE TRIGGER check_no_consecutive_or_same_year_festivals
+BEFORE INSERT ON festival
+FOR EACH ROW
+BEGIN
+    DECLARE festival_count INT DEFAULT 0;
+    DECLARE same_year_count INT DEFAULT 0;
+
+    -- Έλεγχος αν υπάρχει ήδη festival την προηγούμενη ή την επόμενη χρονιά στην ίδια τοποθεσία
+    SELECT COUNT(*) INTO festival_count
+    FROM festival
+    WHERE location_id = NEW.location_id 
+      AND (year = NEW.year - 1 OR year = NEW.year + 1);
+
+    -- Έλεγχος αν υπάρχει ήδη festival την ίδια χρονιά σε οποιαδήποτε τοποθεσία
+    SELECT COUNT(*) INTO same_year_count
+    FROM festival
+    WHERE year = NEW.year;
+
+    -- Αν βρεθεί festival στην ίδια τοποθεσία την προηγούμενη ή την επόμενη χρονιά
+    IF festival_count > 0 THEN
+        -- Καταγραφή στο log
+        INSERT INTO festival_insertion_log (location_id, year, message)
+        VALUES (NEW.location_id, NEW.year, 'Consecutive festivals are not allowed in the same location.');
+        SET NEW.id = NULL;
+        
+        -- Σήμα διακοπής της εισαγωγής
+        SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Consecutive festivals are not allowed in the same location.';
+    END IF;
+
+    -- Αν βρεθεί festival την ίδια χρονιά
+    IF same_year_count > 0 THEN
+        -- Καταγραφή στο log
+        INSERT INTO festival_insertion_log (location_id, year, message)
+        VALUES (NEW.location_id, NEW.year, 'Consecutive festivals are not allowed in the same location.');
+        
+        SET NEW.id = NULL;
+
+        -- Σήμα διακοπής της εισαγωγής
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Consecutive festivals are not allowed in the same location.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- ----------------------------- Trigger for VIP per Capacity ----------------------------------------
 
 DELIMITER $$
 
@@ -624,7 +713,7 @@ BEGIN
 END $$
 
 DELIMITER ;
--- -----------------------------------------------------------------------------------------------------------
+-- -------------------------- Trigger for artist max consecutive participations ---------------------------------
 
 DELIMITER $$
 DROP TRIGGER IF EXISTS check_consecutive_festival_years;
