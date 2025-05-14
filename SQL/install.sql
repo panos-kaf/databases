@@ -50,8 +50,8 @@ CREATE TABLE `artist_subgenre` (
   `subgenre_id` int NOT NULL,
   PRIMARY KEY (`artist_id`,`subgenre_id`),
   KEY `fk_subgenre_id_idx` (`subgenre_id`),
-  CONSTRAINT `fk_artist_id` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_subgenre_id` FOREIGN KEY (`subgenre_id`) REFERENCES `subgenre` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_artist_id` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE RESTICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_subgenre_id` FOREIGN KEY (`subgenre_id`) REFERENCES `subgenre` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -86,8 +86,8 @@ CREATE TABLE `band_artist` (
   `artist_id` int NOT NULL,
   PRIMARY KEY (`band_id`,`artist_id`),
   KEY `artist_id` (`artist_id`),
-  CONSTRAINT `band_artist_ibfk_1` FOREIGN KEY (`band_id`) REFERENCES `band` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `band_artist_ibfk_2` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `band_artist_ibfk_1` FOREIGN KEY (`band_id`) REFERENCES `band` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `band_artist_ibfk_2` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -103,8 +103,8 @@ CREATE TABLE `band_subgenre` (
   `subgenre_id` int NOT NULL,
   PRIMARY KEY (`band_id`,`subgenre_id`),
   KEY `fk_subgenre_id_idx` (`subgenre_id`),
-  CONSTRAINT `fk_band_id` FOREIGN KEY (`band_id`) REFERENCES `band` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_subgenre_band_id` FOREIGN KEY (`subgenre_id`) REFERENCES `subgenre` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_band_id` FOREIGN KEY (`band_id`) REFERENCES `band` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_subgenre_band_id` FOREIGN KEY (`subgenre_id`) REFERENCES `subgenre` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -142,8 +142,8 @@ CREATE TABLE `buyer` (
   `is_valid` int DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
-  CONSTRAINT `buyer_event` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `buyer_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `buyer_event` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `buyer_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -176,7 +176,7 @@ CREATE TABLE `equipment` (
   `image_url` VARCHAR(255) DEFAULT NULL,
   `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`building_id`,`name`),
-  CONSTRAINT `fk_building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -196,7 +196,7 @@ CREATE TABLE `event` (
   PRIMARY KEY (`id`),
   KEY `fk_event_festival_id`(`festival_id`),
   KEY `fk_building_id_idx` (`building_id`),
-  CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_building_event_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_event_festival_id` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -233,7 +233,7 @@ CREATE TABLE `festival` (
   `image_description` VARCHAR(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `location_id_idx` (`location_id`),
-  CONSTRAINT `location_id` FOREIGN KEY (`location_id`) REFERENCES `location` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `location_id` FOREIGN KEY (`location_id`) REFERENCES `location` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -268,7 +268,7 @@ CREATE TABLE `location` (
   `continent_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `continent_id_idx` (`continent_id`),
-  CONSTRAINT `continent_id` FOREIGN KEY (`continent_id`) REFERENCES `continent` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `continent_id` FOREIGN KEY (`continent_id`) REFERENCES `continent` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -291,8 +291,8 @@ CREATE TABLE `performance` (
   KEY `fk_event_performance_id_idx` (`event_id`),
   CONSTRAINT `chk_break_values` CHECK (`break` >= 5 and `break` <= 30 ) ,
   CONSTRAINT `chk_duration_limit` CHECK (`duration` <= 180),
-  CONSTRAINT `fk_event_performance_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_performance_type_id` FOREIGN KEY (`performance_type_id`) REFERENCES `performance_type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_event_performance_id` FOREIGN KEY (`event_id`) REFERENCES `event` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_performance_type_id` FOREIGN KEY (`performance_type_id`) REFERENCES `performance_type` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -302,8 +302,8 @@ CREATE TABLE `artist_performance` (
   `performance_id` int NOT NULL,
 	PRIMARY KEY (`artist_id`,`performance_id`),
 	KEY `fk_artist_id_idx` (`artist_id`),
-	CONSTRAINT `fk_artist_performance_id` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT `fk_performance_artist_id` FOREIGN KEY (`performance_id`) REFERENCES `performance` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+	CONSTRAINT `fk_artist_performance_id` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+	CONSTRAINT `fk_performance_artist_id` FOREIGN KEY (`performance_id`) REFERENCES `performance` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -347,7 +347,7 @@ CREATE TABLE `resale_queue` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `ticket_id_UNIQUE` (`ticket_id`),
-  CONSTRAINT `sale_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `ticket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `sale_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `ticket` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -430,7 +430,7 @@ CREATE TABLE `subgenre` (
   `genre_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_genre_id_idx` (`genre_id`),
-  CONSTRAINT `fk_genre_id` FOREIGN KEY (`genre_id`) REFERENCES `genre` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_genre_id` FOREIGN KEY (`genre_id`) REFERENCES `genre` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -540,8 +540,8 @@ CREATE TABLE `ticket_capacity_log` (
     `ticket_id` INT DEFAULT NULL,
     `attempted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `message` VARCHAR(255) NOT NULL,
-    CONSTRAINT `fk_event_ticket_capacity` FOREIGN KEY (`event_id`) REFERENCES `event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `fk_visitor_ticket_capacity` FOREIGN KEY (`visitor_id`) REFERENCES `visitor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT `fk_event_ticket_capacity` FOREIGN KEY (`event_id`) REFERENCES `event`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `fk_visitor_ticket_capacity` FOREIGN KEY (`visitor_id`) REFERENCES `visitor`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -555,8 +555,8 @@ CREATE TABLE `buyer_log` (
     `purchase_date` DATETIME NOT NULL,
     `purchase_method` VARCHAR(20) NOT NULL, -- 'direct' ή 'resale'
     `is_valid` int,
-    CONSTRAINT `fk_buyer_log_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `ticket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `fk_buyer_log_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT `fk_buyer_log_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `ticket` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `fk_buyer_log_visitor` FOREIGN KEY (`visitor_id`) REFERENCES `visitor` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 DROP TABLE IF EXISTS `building_staff_log`;
@@ -565,7 +565,7 @@ CREATE TABLE `building_staff_log` (
     `building_id` INT NOT NULL,
     `message` VARCHAR(255) NOT NULL,
     `logged_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT `fk_building_staff_log_building` FOREIGN KEY (`building_id`) REFERENCES `building`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT `fk_building_staff_log_building` FOREIGN KEY (`building_id`) REFERENCES `building`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 
