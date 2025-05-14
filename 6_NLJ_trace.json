@@ -1,0 +1,390 @@
+                            TRACE: {
+  "steps": [
+    {
+      "join_preparation": {
+        "select#": 1,
+        "steps": [
+          {
+            "expanded_query": "/* select#1 */ select `visitor`.`name` AS `name`,`performance`.`id` AS `performance id`,avg(`review`.`score`) AS `average score` from (((`visitor` FORCE INDEX (PRIMARY) join `ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`) on((`visitor`.`id` = `ticket`.`visitor_id`))) join `performance` FORCE INDEX (`fk_event_performance_id_idx`) on((`ticket`.`event_id` = `performance`.`event_id`))) join `review` FORCE INDEX (`fk_performance_id`) on((`review`.`performance_id` = `performance`.`id`))) where (`visitor`.`id` = 5) group by `visitor`.`name`,`performance`.`id`"
+          },
+          {
+            "transformations_to_nested_joins": {
+              "transformations": [
+                "JOIN_condition_to_WHERE",
+                "parenthesis_removal"
+              ],
+              "expanded_query": "/* select#1 */ select `visitor`.`name` AS `name`,`performance`.`id` AS `performance id`,avg(`review`.`score`) AS `average score` from `visitor` FORCE INDEX (PRIMARY) join `ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`) join `performance` FORCE INDEX (`fk_event_performance_id_idx`) join `review` FORCE INDEX (`fk_performance_id`) where ((`visitor`.`id` = 5) and (`review`.`performance_id` = `performance`.`id`) and (`ticket`.`event_id` = `performance`.`event_id`) and (`visitor`.`id` = `ticket`.`visitor_id`)) group by `visitor`.`name`,`performance`.`id`"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "join_optimization": {
+        "select#": 1,
+        "steps": [
+          {
+            "condition_processing": {
+              "condition": "WHERE",
+              "original_condition": "((`visitor`.`id` = 5) and (`review`.`performance_id` = `performance`.`id`) and (`ticket`.`event_id` = `performance`.`event_id`) and (`visitor`.`id` = `ticket`.`visitor_id`))",
+              "steps": [
+                {
+                  "transformation": "equality_propagation",
+                  "resulting_condition": "(multiple equal(5, `visitor`.`id`, `ticket`.`visitor_id`) and multiple equal(`review`.`performance_id`, `performance`.`id`) and multiple equal(`ticket`.`event_id`, `performance`.`event_id`))"
+                },
+                {
+                  "transformation": "constant_propagation",
+                  "resulting_condition": "(multiple equal(5, `visitor`.`id`, `ticket`.`visitor_id`) and multiple equal(`review`.`performance_id`, `performance`.`id`) and multiple equal(`ticket`.`event_id`, `performance`.`event_id`))"
+                },
+                {
+                  "transformation": "trivial_condition_removal",
+                  "resulting_condition": "(multiple equal(5, `visitor`.`id`, `ticket`.`visitor_id`) and multiple equal(`review`.`performance_id`, `performance`.`id`) and multiple equal(`ticket`.`event_id`, `performance`.`event_id`))"
+                }
+              ]
+            }
+          },
+          {
+            "substitute_generated_columns": {
+            }
+          },
+          {
+            "table_dependencies": [
+              {
+                "table": "`visitor` FORCE INDEX (PRIMARY)",
+                "row_may_be_null": false,
+                "map_bit": 0,
+                "depends_on_map_bits": [
+                ]
+              },
+              {
+                "table": "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)",
+                "row_may_be_null": false,
+                "map_bit": 1,
+                "depends_on_map_bits": [
+                ]
+              },
+              {
+                "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                "row_may_be_null": false,
+                "map_bit": 2,
+                "depends_on_map_bits": [
+                ]
+              },
+              {
+                "table": "`review` FORCE INDEX (`fk_performance_id`)",
+                "row_may_be_null": false,
+                "map_bit": 3,
+                "depends_on_map_bits": [
+                ]
+              }
+            ]
+          },
+          {
+            "ref_optimizer_key_uses": [
+              {
+                "table": "`visitor` FORCE INDEX (PRIMARY)",
+                "field": "id",
+                "equals": "5",
+                "null_rejecting": false
+              },
+              {
+                "table": "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)",
+                "field": "visitor_id",
+                "equals": "5",
+                "null_rejecting": false
+              },
+              {
+                "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                "field": "event_id",
+                "equals": "`ticket`.`event_id`",
+                "null_rejecting": false
+              },
+              {
+                "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                "field": "id",
+                "equals": "`review`.`performance_id`",
+                "null_rejecting": false
+              },
+              {
+                "table": "`review` FORCE INDEX (`fk_performance_id`)",
+                "field": "performance_id",
+                "equals": "`performance`.`id`",
+                "null_rejecting": false
+              }
+            ]
+          },
+          {
+            "rows_estimation": [
+              {
+                "table": "`visitor` FORCE INDEX (PRIMARY)",
+                "rows": 1,
+                "cost": 1,
+                "table_type": "const",
+                "empty": false
+              },
+              {
+                "table": "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)",
+                "range_analysis": {
+                  "table_scan": {
+                    "rows": 85947,
+                    "cost": 2e308
+                  },
+                  "potential_range_indexes": [
+                    {
+                      "index": "PRIMARY",
+                      "usable": false,
+                      "cause": "not_applicable"
+                    },
+                    {
+                      "index": "fk_purchase_type_id_idx",
+                      "usable": false,
+                      "cause": "not_applicable"
+                    },
+                    {
+                      "index": "fk_ticket_type_id_idx",
+                      "usable": false,
+                      "cause": "not_applicable"
+                    },
+                    {
+                      "index": "fk_ticket_visitor_id_idx",
+                      "usable": true,
+                      "key_parts": [
+                        "visitor_id",
+                        "id"
+                      ]
+                    },
+                    {
+                      "index": "fk_ticket_event_id",
+                      "usable": false,
+                      "cause": "not_applicable"
+                    }
+                  ],
+                  "setup_range_conditions": [
+                  ],
+                  "group_index_range": {
+                    "chosen": false,
+                    "cause": "not_single_table"
+                  },
+                  "analyzing_range_alternatives": {
+                    "range_scan_alternatives": [
+                      {
+                        "index": "fk_ticket_visitor_id_idx",
+                        "ranges": [
+                          "5 <= visitor_id <= 5"
+                        ],
+                        "index_dives_for_eq_ranges": true,
+                        "rowid_ordered": true,
+                        "using_mrr": false,
+                        "index_only": false,
+                        "rows": 1,
+                        "cost": 2.21,
+                        "chosen": true
+                      }
+                    ],
+                    "analyzing_roworder_intersect": {
+                      "usable": false,
+                      "cause": "too_few_roworder_scans"
+                    }
+                  },
+                  "chosen_range_access_summary": {
+                    "range_access_plan": {
+                      "type": "range_scan",
+                      "index": "fk_ticket_visitor_id_idx",
+                      "rows": 1,
+                      "ranges": [
+                        "5 <= visitor_id <= 5"
+                      ]
+                    },
+                    "rows_for_plan": 1,
+                    "cost_for_plan": 2.21,
+                    "chosen": true
+                  }
+                }
+              },
+              {
+                "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                "table_scan": {
+                  "rows": 900,
+                  "cost": 5
+                }
+              },
+              {
+                "table": "`review` FORCE INDEX (`fk_performance_id`)",
+                "table_scan": {
+                  "rows": 239552,
+                  "cost": 609
+                }
+              }
+            ]
+          },
+          {
+            "considered_execution_plans": [
+              {
+                "plan_prefix": [
+                  "`visitor` FORCE INDEX (PRIMARY)"
+                ],
+                "table": "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)",
+                "best_access_path": {
+                  "considered_access_paths": [
+                    {
+                      "access_type": "ref",
+                      "index": "fk_ticket_visitor_id_idx",
+                      "rows": 1,
+                      "cost": 1.2,
+                      "chosen": true
+                    },
+                    {
+                      "access_type": "range",
+                      "range_details": {
+                        "used_index": "fk_ticket_visitor_id_idx"
+                      },
+                      "chosen": false,
+                      "cause": "heuristic_index_cheaper"
+                    }
+                  ]
+                },
+                "condition_filtering_pct": 100,
+                "rows_for_plan": 1,
+                "cost_for_plan": 1.2,
+                "rest_of_plan": [
+                  {
+                    "plan_prefix": [
+                      "`visitor` FORCE INDEX (PRIMARY)",
+                      "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)"
+                    ],
+                    "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                    "best_access_path": {
+                      "considered_access_paths": [
+                        {
+                          "access_type": "ref",
+                          "index": "fk_event_performance_id_idx",
+                          "rows": 5,
+                          "cost": 2.0039,
+                          "chosen": true
+                        },
+                        {
+                          "access_type": "scan",
+                          "cost": 185,
+                          "rows": 900,
+                          "chosen": false,
+                          "cause": "cost"
+                        }
+                      ]
+                    },
+                    "added_to_eq_ref_extension": false
+                  },
+                  {
+                    "plan_prefix": [
+                      "`visitor` FORCE INDEX (PRIMARY)",
+                      "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)"
+                    ],
+                    "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                    "best_access_path": {
+                      "considered_access_paths": [
+                        {
+                          "access_type": "ref",
+                          "index": "fk_event_performance_id_idx",
+                          "rows": 5,
+                          "cost": 2.0039,
+                          "chosen": true
+                        },
+                        {
+                          "access_type": "scan",
+                          "cost": 185,
+                          "rows": 900,
+                          "chosen": false,
+                          "cause": "cost"
+                        }
+                      ]
+                    },
+                    "condition_filtering_pct": 100,
+                    "rows_for_plan": 5,
+                    "cost_for_plan": 3.2039,
+                    "rest_of_plan": [
+                      {
+                        "plan_prefix": [
+                          "`visitor` FORCE INDEX (PRIMARY)",
+                          "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)",
+                          "`performance` FORCE INDEX (`fk_event_performance_id_idx`)"
+                        ],
+                        "table": "`review` FORCE INDEX (`fk_performance_id`)",
+                        "best_access_path": {
+                          "considered_access_paths": [
+                            {
+                              "access_type": "ref",
+                              "index": "fk_performance_id",
+                              "rows": 266.17,
+                              "cost": 1597,
+                              "chosen": true
+                            },
+                            {
+                              "access_type": "scan",
+                              "chosen": false,
+                              "cause": "force_index"
+                            }
+                          ]
+                        },
+                        "condition_filtering_pct": 100,
+                        "rows_for_plan": 1330.8,
+                        "cost_for_plan": 1600.2,
+                        "chosen": true
+                      }
+                    ]
+                  },
+                  {
+                    "plan_prefix": [
+                      "`visitor` FORCE INDEX (PRIMARY)",
+                      "`ticket` FORCE INDEX (`fk_ticket_visitor_id_idx`)"
+                    ],
+                    "table": "`review` FORCE INDEX (`fk_performance_id`)",
+                    "best_access_path": {
+                      "considered_access_paths": [
+                        {
+                          "access_type": "ref",
+                          "index": "fk_performance_id",
+                          "usable": false,
+                          "chosen": false
+                        },
+                        {
+                          "rows_to_scan": 239552,
+                          "access_type": "scan",
+                          "using_join_cache": true,
+                          "buffers_needed": 1,
+                          "resulting_rows": 239552,
+                          "cost": 287472,
+                          "chosen": true
+                        }
+                      ]
+                    },
+                    "condition_filtering_pct": 100,
+                    "rows_for_plan": 239552,
+                    "cost_for_plan": 287473,
+                    "pruned_by_cost": true
+                  }
+                ]
+              },
+              {
+                "plan_prefix": [
+                  "`visitor` FORCE INDEX (PRIMARY)"
+                ],
+                "table": "`performance` FORCE INDEX (`fk_event_performance_id_idx`)",
+                "best_access_path": {
+                  "considered_access_paths": [
+                    {
+                      "access_type": "ref",
+                      "index": "fk_event_performance_id_idx",
+                      "usable": false,
+                      "chosen": false
+                    },
+                    {
+                      "rows_to_scan": 900,
+                      "access_type": "scan",
+                      "resulting_rows": 900,
+                      "cost": 1081,
+                      "chosen": true
+                    }
+                  ]
+                },
+                "condition_filtering_pct": 100,
+                "rows_for_plan": 900,
+                "cost_for_plan": 1081,

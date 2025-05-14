@@ -1,0 +1,166 @@
+ {
+  "query_block": {
+    "select_id": 1,
+    "cost_info": {
+      "query_cost": "1154759.91"
+    },
+    "ordering_operation": {
+      "using_filesort": true,
+      "grouping_operation": {
+        "using_temporary_table": true,
+        "using_filesort": false,
+        "nested_loop": [
+          {
+            "table": {
+              "table_name": "criteria",
+              "access_type": "ALL",
+              "possible_keys": [
+                "PRIMARY"
+              ],
+              "rows_examined_per_scan": 5,
+              "rows_produced_per_join": 2,
+              "filtered": "40.00",
+              "cost_info": {
+                "read_cost": "1.60",
+                "eval_cost": "0.40",
+                "prefix_cost": "2.00",
+                "data_read_per_join": "176"
+              },
+              "used_columns": [
+                "id",
+                "category"
+              ],
+              "attached_condition": "(databases25.criteria.category in ('artist performance','overall impression'))"
+            }
+          },
+          {
+            "table": {
+              "table_name": "performance",
+              "access_type": "index",
+              "possible_keys": [
+                "PRIMARY"
+              ],
+              "key": "fk_event_performance_id_idx",
+              "used_key_parts": [
+                "event_id"
+              ],
+              "key_length": "4",
+              "rows_examined_per_scan": 900,
+              "rows_produced_per_join": 1800,
+              "filtered": "100.00",
+              "using_index": true,
+              "using_join_buffer": "Block Nested Loop",
+              "cost_info": {
+                "read_cost": "5.00",
+                "eval_cost": "360.00",
+                "prefix_cost": "367.00",
+                "data_read_per_join": "56K"
+              },
+              "used_columns": [
+                "id"
+              ]
+            }
+          },
+          {
+            "table": {
+              "table_name": "review",
+              "access_type": "ref",
+              "possible_keys": [
+                "fk_performance_id",
+                "fk_criteria_id"
+              ],
+              "key": "fk_performance_id",
+              "used_key_parts": [
+                "performance_id"
+              ],
+              "key_length": "4",
+              "ref": [
+                "databases25.performance.id"
+              ],
+              "rows_examined_per_scan": 266,
+              "rows_produced_per_join": 119775,
+              "filtered": "25.00",
+              "cost_info": {
+                "read_cost": "479104.00",
+                "eval_cost": "23955.20",
+                "prefix_cost": "575291.80",
+                "data_read_per_join": "2M"
+              },
+              "used_columns": [
+                "id",
+                "score",
+                "criteria_id",
+                "performance_id"
+              ],
+              "attached_condition": "(databases25.review.criteria_id = databases25.criteria.id)"
+            }
+          },
+          {
+            "table": {
+              "table_name": "artist_performance",
+              "access_type": "ref",
+              "possible_keys": [
+                "PRIMARY",
+                "fk_artist_id_idx",
+                "fk_performance_artist_id"
+              ],
+              "key": "fk_performance_artist_id",
+              "used_key_parts": [
+                "performance_id"
+              ],
+              "key_length": "4",
+              "ref": [
+                "databases25.performance.id"
+              ],
+              "rows_examined_per_scan": 9,
+              "rows_produced_per_join": 1124430,
+              "filtered": "100.00",
+              "using_index": true,
+              "cost_info": {
+                "read_cost": "121246.94",
+                "eval_cost": "224886.08",
+                "prefix_cost": "921424.83",
+                "data_read_per_join": "17M"
+              },
+              "used_columns": [
+                "artist_id",
+                "performance_id"
+              ]
+            }
+          },
+          {
+            "table": {
+              "table_name": "artist",
+              "access_type": "eq_ref",
+              "possible_keys": [
+                "PRIMARY"
+              ],
+              "key": "PRIMARY",
+              "used_key_parts": [
+                "id"
+              ],
+              "key_length": "4",
+              "ref": [
+                "databases25.artist_performance.artist_id"
+              ],
+              "rows_examined_per_scan": 1,
+              "rows_produced_per_join": 1124430,
+              "filtered": "100.00",
+              "cost_info": {
+                "read_cost": "8449.00",
+                "eval_cost": "224886.08",
+                "prefix_cost": "1154759.91",
+                "data_read_per_join": "2G"
+              },
+              "used_columns": [
+                "id",
+                "name",
+                "stage_name"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+} |
