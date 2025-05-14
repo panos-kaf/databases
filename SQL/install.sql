@@ -585,6 +585,40 @@ CREATE TABLE `buyer_log` (
 
 DELIMITER $$
 
+DROP TRIGGER IF EXISTS check_festival_location_per_year;
+CREATE TRIGGER check_festival_location_per_year
+BEFORE INSERT ON festival
+FOR EACH ROW
+BEGIN
+    DECLARE conflict_count INT DEFAULT 0;
+
+    -- Έλεγχος αν η τοποθεσία έχει χρησιμοποιηθεί για το ίδιο φεστιβάλ σε προηγούμενα χρόνια
+    SELECT COUNT(*) INTO conflict_count
+    FROM festival
+    WHERE location_id = NEW.location_id
+      AND year < NEW.year;
+
+    -- Αν υπάρχει conflict
+    IF conflict_count > 0 THEN
+        -- Καταγραφή στο log
+        INSERT INTO festival_insertion_log (location_id, year, message)
+        VALUES (
+            NEW.location_id,
+            NEW.year,
+            'Conflict detected: This festival has already been held in this location in a previous year.'
+        );
+
+        -- Παράκαμψη του insert
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Conflict detected: This festival has already been held in this location in a previous year.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
 DROP TRIGGER IF EXISTS check_vip_capacity;
 CREATE TRIGGER check_vip_capacity
 BEFORE INSERT ON ticket
