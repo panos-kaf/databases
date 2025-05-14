@@ -299,7 +299,7 @@ CREATE TABLE `performance` (
 DROP TABLE IF EXISTS `artist_performance`;
 CREATE TABLE `artist_performance` (
 	`artist_id` int NOT NULL,
-    `performance_id` int NOT NULL,
+  `performance_id` int NOT NULL,
 	PRIMARY KEY (`artist_id`,`performance_id`),
 	KEY `fk_artist_id_idx` (`artist_id`),
 	CONSTRAINT `fk_artist_performance_id` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -375,8 +375,8 @@ CREATE TABLE `review` (
 DROP TABLE IF EXISTS `criteria`;
 CREATE TABLE `criteria` (
 	`id` int auto_increment,
-    `category` VARCHAR(20) NOT NULL,
-    primary key (`id`)
+  `category` VARCHAR(20) NOT NULL,
+  primary key (`id`)
 );
 
 --
@@ -405,14 +405,14 @@ CREATE TABLE `staff` (
   `first_name` varchar(45) NOT NULL,
   `last_name` varchar(45) NOT NULL,
   `birthdate` date NOT NULL,
-  `experience` int NOT NULL,
+  `experience_id` int NOT NULL,
   `role_id` int NOT NULL,
   `building_id` int NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `experience_id_idx` (`experience`),
+  KEY `experience_id_idx` (`experience_id`),
   KEY `role_id_idx` (`role_id`),
   CONSTRAINT `building_id` FOREIGN KEY (`building_id`) REFERENCES `building` (`id`),
-  CONSTRAINT `experience_id` FOREIGN KEY (`experience`) REFERENCES `experience` (`id`),
+  CONSTRAINT `experience_id` FOREIGN KEY (`experience_id`) REFERENCES `experience` (`id`),
   CONSTRAINT `role_id` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 /*!40101 SET character_set_client = @saved_cs_client */;
