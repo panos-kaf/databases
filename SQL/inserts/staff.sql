@@ -1,4 +1,4 @@
-INSERT INTO staff (first_name, last_name, birthdate, experience, role_id, building_id)
+INSERT INTO staff (first_name, last_name, birthdate, experience, role, building_id)
 VALUES
 ('Crystal', 'Potts', '1989-11-20', 3, 4, 1),
 ('Tricia', 'Wilson', '1973-04-08', 5, 4, 1),
