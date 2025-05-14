@@ -1,5 +1,5 @@
 **/.DS_Store
-datagen/bin/
-datagen/lib/
-datagen/iclude/
-datagen/pyvenv.cfg
+code/datagen/bin/
+code/datagen/lib/
+code/datagen/iclude/
+code/datagen/pyvenv.cfg
