@@ -1,42 +1,43 @@
 import random
-from datetime import datetime, timedelta
+from faker import Faker
 
-# Lists of more diverse and varied names
-first_names = [
-    "Avery", "Jordan", "Morgan", "Casey", "Riley", "Dakota", "Emerson", "Skyler", "Reese", "Alex",
-    "Taylor", "Jamie", "Peyton", "Quinn", "Rowan", "Sage", "Tatum", "Blake", "Cameron", "Elliot",
-    "Harper", "Kai", "Lennon", "Micah", "Phoenix", "Remy", "Sawyer", "Spencer", "Winter", "Zion",
-    "Finley", "Ari", "Luca", "Sasha", "Hayden", "Kendall", "Logan", "Marley", "Nico", "River",
-    "Robin", "Sam", "Toby", "Wren", "Ash", "Beau", "Charlie", "Drew", "Ellis", "Frankie"
-]
+fake = Faker()
 
-last_names = [
-    "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez",
-    "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor",
-    "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez",
-    "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright",
-    "Scott", "Torres", "Nguyen", "Hill", "Flores", "Green", "Adams", "Nelson", "Baker",
-    "Hall", "Rivera", "Campbell", "Mitchell", "Carter", "Roberts"
-]
-
-# Generate random dates between 1965 and 2005
-def random_birthdate(start_year=1965, end_year=2005):
-    start_date = datetime(start_year, 1, 1)
-    end_date = datetime(end_year, 12, 31)
-    delta = end_date - start_date
-    random_days = random.randint(0, delta.days)
-    return (start_date + timedelta(days=random_days)).strftime("%Y-%m-%d")
-
-# Generate 500 tuples
 entries = []
-for _ in range(500):
-    fname = random.choice(first_names)
-    lname = random.choice(last_names)
-    birthdate = random_birthdate()
-    experience = random.randint(1, 5)
-    role = random.randint(1, 4)
-    entries.append(f"('{fname}', '{lname}', '{birthdate}', {experience}, {role})")
 
+for building_id in range(1, 31):
 
-for entry in entries:
-	print(entry)
+    for _ in range(10):
+        fname = fake.first_name().replace("'", "''")
+        lname = fake.last_name().replace("'", "''")
+        birthdate = fake.date_of_birth(minimum_age=18, maximum_age=65).strftime('%Y-%m-%d')
+        experience = random.randint(1, 5)
+        role = 4  # guides
+        entries.append(f"('{fname}', '{lname}', '{birthdate}', {experience}, {role}, {building_id})")
+
+    for _ in range(25):
+        fname = fake.first_name().replace("'", "''")
+        lname = fake.last_name().replace("'", "''")
+        birthdate = fake.date_of_birth(minimum_age=18, maximum_age=65).strftime('%Y-%m-%d')
+        experience = random.randint(1, 5)
+        role = 1  # security
+        entries.append(f"('{fname}', '{lname}', '{birthdate}', {experience}, {role}, {building_id})")
+
+    for _ in range(50):
+        fname = fake.first_name().replace("'", "''")
+        lname = fake.last_name().replace("'", "''")
+        birthdate = fake.date_of_birth(minimum_age=18, maximum_age=65).strftime('%Y-%m-%d')
+        experience = random.randint(1, 5)
+        role = random.randint(1, 4)
+        # Note: No building_id for these entries, so we use NULL
+        entries.append(f"('{fname}', '{lname}', '{birthdate}', {experience}, {role}, {building_id})")
+
+# Compose full INSERT statement
+sql = (
+    "INSERT INTO staff (first_name, last_name, birthdate, experience, role_id, building_id)\nVALUES\n"
+    + ",\n".join(entries) + ";"
+)
+
+# Write to file
+with open('staff.sql', "w", encoding="utf-8") as f:
+    f.write(sql)
