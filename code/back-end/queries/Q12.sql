@@ -1,4 +1,4 @@
-SET @number_one = 10;
+-- SET @number_one = 10;
 
 WITH cte_festival_staff AS (
     SELECT 
@@ -11,7 +11,7 @@ WITH cte_festival_staff AS (
         CASE 
             WHEN role.description = 'Security' THEN CEIL((MAX(building.capacity) * 0.05))
             WHEN role.description = 'Guide' THEN CEIL((MAX(building.capacity) * 0.02))
-            WHEN role.description = 'Technician' THEN @number_one
+            WHEN role.description = 'Technician' THEN 10
             ELSE 0
         END AS minimum_required
     FROM 

@@ -1,4 +1,4 @@
-SET @target_date = '2025-05-12';
+-- SET @target_date = '2025-05-12';
 
 SELECT DISTINCT 
     staff.id,
@@ -18,5 +18,5 @@ WHERE
         JOIN festival f ON e.festival_id = f.id
         WHERE 
             e.building_id = staff.building_id AND
-            @target_date BETWEEN f.starting_date AND f.ending_date
+            '2025-05-12' BETWEEN f.starting_date AND f.ending_date
     );
